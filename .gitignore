@@ -1,0 +1,6 @@
+.DS_Store
+.idea
+*.log
+tmp/
+
+write_a_c_compiler
