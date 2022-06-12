@@ -8,6 +8,8 @@
 #define NUM_KEYWORDS 8
 
 char sourcePath[LEN_PATH] = "";
+char **tokens= NULL;
+int tokenListSize;
 
 //Token Regex Types
 regex_t openBrace;
@@ -21,6 +23,14 @@ regex_t identifier;
 regex_t int_literal;
 
 regex_t keywords[9];
+
+void printTokens(){
+  int i;
+  printf("Tokens:\n");
+  for(i = 0; i < tokenListSize; i++){
+    printf("%s\n", tokens[i]);
+  }
+}
 
 void printKeywordType(int i){
   switch (i) {
@@ -80,10 +90,9 @@ void initRegexp(){
   //keywords[8] = identifier;
 }
 
-char **lex(){
+void lex(){
   FILE *sourceFile;
   char *fileBuf = NULL;
-  //char **tokens = {};
   int numTokens = 0;
 
   //Attempt to open source code file
@@ -105,6 +114,8 @@ char **lex(){
     fread(fileBuf, 1, sourceLen, sourceFile);
     fclose(sourceFile);
   }
+  //Allocate starting space for token list, token strings allocated as it goes
+  tokens = malloc(sizeof(char *) * 500);
   //Lex the source file using regex
   char *line = 0;
   int lineNum = 0;
@@ -131,6 +142,12 @@ char **lex(){
           printf("\tToken found (");
           printKeywordType(i);
           printf("): %s\n", currToken);
+          tokens[numTokens] = malloc(sizeof(char)*100);
+          if(tokens[numTokens] == NULL){
+            fprintf(stderr, "Failed to allocate memory for token \"%s\"\".\n", currToken);
+            exit(1);
+          }
+          strncpy(tokens[numTokens], currToken, 99);
           strncpy(currToken, "", 1);
           numTokens++;
           break;
@@ -141,6 +158,12 @@ char **lex(){
             printf("\tToken found (");
             printKeywordType(9);
             printf("): %s\n", currToken);
+            tokens[numTokens] = malloc(sizeof(char)*100);
+            if(tokens[numTokens] == NULL){
+                fprintf(stderr, "Failed to allocate memory for token \"%s\"\".\n", currToken);
+                exit(1);
+            }
+          strncpy(tokens[numTokens], currToken, 99);
             strncpy(currToken, "", 1);
             numTokens++;
             break;
@@ -155,7 +178,20 @@ char **lex(){
     line = strtok(NULL, "\n");
   }
   printf("Number of tokens identified: %d\n", numTokens);
-  return 0;
+  tokens = realloc(tokens, sizeof(char*) * numTokens + 1);
+  if(tokens == NULL){
+    fprintf(stderr, "Failed to reallocate tokens to size %d\n", numTokens);
+    exit(1);
+  }
+  tokenListSize = numTokens;
+}
+
+void freeTokens(){
+  int i;
+  for(i = 0; i < tokenListSize; i++){
+    free(tokens[i]);
+  }
+  free(tokens);
 }
 
 int main(int argc, char *argv[]) {
@@ -170,5 +206,8 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   lex();
+  printf("Token List Size: %d\n", tokenListSize);
+  //printTokens();
+  free(tokens);
   return 0;
 }
