@@ -9,16 +9,7 @@
 
 char sourcePath[LEN_PATH] = "";
 
-//Token regex types
-//{
-//}
-//(
-//)
-//;
-//int
-//return
-//identifier (any word with any amount of whitespace + any character after)
-//integer literal (1 or more digits)
+//Token Regex Types
 regex_t openBrace;
 regex_t closeBrace;
 regex_t openParen;
@@ -31,6 +22,37 @@ regex_t int_literal;
 
 regex_t keywords[9];
 
+void printKeywordType(int i){
+  switch (i) {
+  case 0:
+    printf("open bracket");
+    break;
+  case 1:
+    printf("closed bracket");
+    break;
+  case 2:
+    printf("open parentheses");
+    break;
+  case 3:
+    printf("closed parentheses");
+    break;
+  case 4:
+    printf("semicolon");
+    break;
+  case 5:
+    printf("int keyword");
+    break;
+  case 6:
+    printf("return keyword");
+    break;
+  case 7:
+    printf("int literal");
+    break;
+  default:
+    printf("identifier");
+  }
+}
+
 void initRegexp(){
   int flag = 0;
   flag += regcomp(&openBrace, "{", 0);
@@ -41,7 +63,7 @@ void initRegexp(){
   flag += regcomp(&int_keyw, "int", 0);
   flag += regcomp(&ret_keyw, "return", 0);
   flag += regcomp(&identifier, "[a-zA-Z]\\w*", 0);
-  flag += regcomp(&int_literal, "[0-9]+", 0);
+  flag += regcomp(&int_literal, "[0-9]\\+", 0);
   if(flag > 0){
     fprintf(stderr, "Failed to init 1 or more regular expressions.\n");
     exit(1);
@@ -87,7 +109,7 @@ char **lex(){
   char *line = 0;
   int lineNum = 0;
 
-  printf("-- compiling %s --\n%s\n\n", sourcePath, fileBuf);
+  printf("-- lexing %s --\n\n", sourcePath);
   line = strtok(strdup(fileBuf), "\n");
   //Parse line for tokens
   char currToken[1000] = "";
@@ -99,22 +121,30 @@ char **lex(){
       int i;
       //Build current token until single keyword is found
       for(i = 0; i < NUM_KEYWORDS; i++){
-        //If next character in line is single keyword, return token
+        //Ignore whitespace, it can't part of a keyword
         if(isspace(*currToken)){
           strncpy(currToken, "", 1);
           break;
         }
+        //If next character in line is a keyword, return token
         if(regexec(&keywords[i], currToken, 0, NULL, 0) == 0){
-          printf("\tToken found: %s\n", currToken);
+          printf("\tToken found (");
+          printKeywordType(i);
+          printf("): %s\n", currToken);
           strncpy(currToken, "", 1);
           numTokens++;
           break;
         }
+        //If next is a single char keyword, the this current token is an identifier
         else if(regexec(&keywords[i], strndup(&line[1], 1), 0, NULL, 0) == 0){
-          printf("\tToken found: %s\n", currToken);
-          strncpy(currToken, "", 1);
-          numTokens++;
-          break;
+          if(regexec(&identifier, currToken, 0, NULL, 0) == 0){
+            printf("\tToken found (");
+            printKeywordType(9);
+            printf("): %s\n", currToken);
+            strncpy(currToken, "", 1);
+            numTokens++;
+            break;
+          }
         }
       }
       line++;
@@ -124,6 +154,7 @@ char **lex(){
     lineNum++;
     line = strtok(NULL, "\n");
   }
+  printf("Number of tokens identified: %d\n", numTokens);
   return 0;
 }
 
@@ -134,6 +165,10 @@ int main(int argc, char *argv[]) {
   }
   strncpy(sourcePath, argv[1], LEN_PATH);
   initRegexp();
+  if(regexec(&int_literal, "49", 0, NULL, 0) != 0){
+    fprintf(stderr, "Houston, we have a problem...\n");
+    exit(1);
+  }
   lex();
   return 0;
 }
