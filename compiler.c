@@ -7,8 +7,22 @@
 #define LEN_PATH 4097
 #define NUM_KEYWORDS 9
 
+typedef enum TOKEN_TYPE {OPEN_BRACE, CLOSED_BRACE, OPEN_PAREN, CLOSED_PAREN, SEMICOLON, INT_KEYW, RET_KEYW, INT_LITERAL, IDENTIFIER} TOKEN_TYPE;
+
+//Tokenlist node, contains token data and pointer to next token (if available)
+typedef struct token_t {
+  char *value;
+  TOKEN_TYPE type;
+  struct token_t *next;
+} token_t;
+
+//Tokenlist type
+typedef struct tokenlist_t {
+  token_t *head;
+  token_t *tail;
+} tokenlist_t;
+
 char sourcePath[LEN_PATH] = "";
-char **tokens= NULL;
 int tokenListSize;
 
 //Token Regex Types
@@ -54,6 +68,29 @@ void initRegexp(){
   keywords[8] = identifier;
 }
 
+token_t *createToken(char *value, TOKEN_TYPE type){
+  if(value == NULL){
+    fprintf(stderr, "Attempted to create token with null value\n");
+    exit(1);
+  }
+  token_t *newToken = malloc(sizeof(token_t)*1);
+  if(newToken == NULL){
+    fprintf(stderr, "Failed to allocate space for new token.\n");
+    exit(1);
+  }
+  newToken->value = value;
+  newToken->type = type;
+  newToken->next = NULL;
+  return newToken;
+}
+
+void freeRegs(){
+  int i;
+  for(i = 0; i < NUM_KEYWORDS; i++){
+    regfree(&keywords[i]);
+  }
+}
+
 void printSubstr(char *line, int start, int end){
   int i;
   for(i = 0; i < end-start; i++){
@@ -61,22 +98,68 @@ void printSubstr(char *line, int start, int end){
   }
 }
 
-char* addToken(char *line, int start, int end, int* numTokens){
-  char *token = malloc(sizeof(char)*100);
-  if(token == NULL){
-    fprintf(stderr, "Failed to allocate space for token.\n");
-    exit(1);
+//addToken for global array tokenList, deprecated
+//char* addToken(char *line, int start, int end, int* numTokens){
+//  char *token = NULL;
+//  token = malloc(sizeof(char)*100);
+//  if(token == NULL){
+//    fprintf(stderr, "Failed to allocate space for token.\n");
+//    exit(1);
+//  }
+//  strncat(token, &line[start], end-start);
+//  tokens[*numTokens] = token;
+//  (*numTokens)++;
+//  return token;
+//}
+
+tokenlist_t *initTokenlist(){
+  tokenlist_t *tokens;
+  tokens = (tokenlist_t*) malloc(sizeof(tokenlist_t));
+  if(tokens == NULL){
+    fprintf(stderr, "Failed to allocate space for tokenlist.\n");
   }
-  strncat(token, &line[start], end-start);
-  tokens[*numTokens] = token;
-  (*numTokens)++;
-  return token;
+  tokens->head = NULL;
+  tokens->tail = NULL;
+  return tokens;
 }
 
-void lex(){
+token_t *popToken(tokenlist_t *tokens){
+  if(tokens->head == NULL)
+    return NULL;
+  token_t *popped = tokens->head;
+  tokens->head = popped->next;
+  popped->next = NULL;
+  return popped;
+}
+
+void appendToken(tokenlist_t *tokens, token_t *token){
+
+  if(tokens == NULL){
+    fprintf(stderr, "Attempted to append token to null tokenlist\n");
+    return;
+  }
+  if(token == NULL){
+    fprintf(stderr, "Attempted to append null token to tokenlist\n");
+    return;
+  }
+  if(tokens->head == NULL){
+    tokens->head = token;
+    tokens->tail = token;
+    token->next = NULL;
+    return;
+  }
+  else if(tokens->tail != NULL){
+    tokens->tail->next = token;
+    tokens->tail = token;
+    return;
+  }
+}
+
+tokenlist_t *lex(){
   FILE *sourceFile;
   char *fileBuf = NULL;
   int numTokens = 0;
+  tokenlist_t *tokens;
 
   //Attempt to open source code file
   sourceFile = fopen(sourcePath, "r");
@@ -89,7 +172,7 @@ void lex(){
     fseek(sourceFile, 0, SEEK_END);
     int sourceLen = ftell(sourceFile);
     fseek(sourceFile, 0, SEEK_SET);
-    fileBuf = malloc(sizeof(char) * sourceLen);
+    fileBuf = malloc(sizeof(char) * sourceLen + 1);
     if(fileBuf == NULL){
       fprintf(stderr, "Failed to allocate file buffer in Lexer.\n");
       exit(1);
@@ -97,8 +180,7 @@ void lex(){
     fread(fileBuf, 1, sourceLen, sourceFile);
     fclose(sourceFile);
   }
-  //Allocate starting space for token list, token strings allocated as it goes
-  tokens = malloc(sizeof(char *) * 500);
+  tokens = initTokenlist();
   //Lex the source file using regex
   char *line = 0;
   int lineNum = 0;
@@ -117,6 +199,7 @@ void lex(){
     int lineLen = strnlen(line, 1000);
     int minStart = lineLen;
     int minEnd = lineLen;
+    TOKEN_TYPE tokType = -1;
     while(line[0] != '\0'){
       for(i = 0; i < NUM_KEYWORDS; i++){
         if(regexec(&keywords[i], line, 1, &pmatch, 0) == 0){
@@ -124,13 +207,16 @@ void lex(){
           if(pmatch.rm_so < minStart){
             minStart = pmatch.rm_so;
             minEnd = pmatch.rm_eo;
+            tokType = (TOKEN_TYPE) i;
           }
         }
       }
       printf("\tToken found: ");
       printSubstr(line, minStart, minEnd);
       puts("");
-      printf("\t\tAdded token: %s\n", addToken(line, minStart, minEnd, &numTokens));
+      token_t *newToken = createToken(strndup(&line[minStart], minEnd-minStart), tokType);
+      appendToken(tokens, newToken);
+      printf("\t\tAdded token: %s\n", newToken->value);
       //Update line position (and line length) to remove identified token
       line += minEnd;
       lineLen -= minEnd;
@@ -142,27 +228,34 @@ void lex(){
     line = strtok(NULL, "\n");
   }
   printf("Number of tokens identified: %d\n", numTokens);
-  tokens = realloc(tokens, sizeof(char*) * numTokens + 1);
-  if(tokens == NULL){
-    fprintf(stderr, "Failed to reallocate tokens to size %d\n", numTokens);
-    exit(1);
-  }
   tokenListSize = numTokens;
   free(fileBuf);
+  free(line);
+  return tokens;
 }
 
-void printTokens(){
-  int i;
+void printTokens(tokenlist_t *tokens){
   printf("Tokens:\n");
-  for(i = 0; i < tokenListSize; i++){
-    printf("%s\n", tokens[i]);
+  if(tokens->head == NULL)
+    return;
+  token_t *currToken = tokens->head;
+  while(currToken != NULL){
+    printf("%s\n", currToken->value);
+    currToken = currToken->next;
   }
 }
 
-void freeTokens(){
-  int i;
-  for(i = 0; i < tokenListSize; i++){
-    free(tokens[i]);
+
+void freeTokens(tokenlist_t *tokens){
+  if(tokens == NULL)
+    return;
+  token_t *currToken = tokens->head;
+  token_t *prev = NULL;
+  while(currToken != NULL){
+    prev = currToken;
+    currToken = currToken->next;
+    free(prev->value);
+    free(prev);
   }
   free(tokens);
 }
@@ -174,9 +267,12 @@ int main(int argc, char *argv[]) {
   }
   strncpy(sourcePath, argv[1], LEN_PATH);
   initRegexp();
-  lex();
+  tokenlist_t *tokens = lex();
   printf("Token List Size: %d\n", tokenListSize);
-  //printTokens();
-  freeTokens();
+  printTokens(tokens);
+
+  //Free's
+  freeTokens(tokens);
+  freeRegs();
   return 0;
 }
