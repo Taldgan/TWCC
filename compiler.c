@@ -168,12 +168,12 @@ void freeTokens(){
 }
 
 int main(int argc, char *argv[]) {
-  strncpy(sourcePath, "return2.c", LEN_PATH);
-  initRegexp();
-  if(regexec(&int_literal, "49", 0, NULL, 0) != 0){
-    fprintf(stderr, "Houston, we have a problem...\n");
+  if(argc < 2){
+    fprintf(stderr, "Usage: %s <source code file>\n\nThis compiler should generate an object file, linkable with gcc for x86.\n", argv[0]);
     exit(1);
   }
+  strncpy(sourcePath, argv[1], LEN_PATH);
+  initRegexp();
   lex();
   printf("Token List Size: %d\n", tokenListSize);
   //printTokens();
