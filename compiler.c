@@ -42,7 +42,8 @@ regex_t int_literal;
 regex_t keywords[9];
 
 /**
- *Initializes regular expression variables for use in lexing, and adds them to the keywords list.
+ * initRegexp()
+ * Initializes regular expression variables for use in lexing, and adds them to the keywords list.
  *
  * return void
  **/
@@ -74,6 +75,7 @@ void initRegexp(){
 }
 
 /**
+ * *createToken(char *value, TOKEN_TYPE type)
  * Creates a new token data type, and returns its pointer.
  *
  * param value - String containing the value of the token ('main'/'int'/'16', etc)
