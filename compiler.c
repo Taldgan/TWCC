@@ -41,6 +41,11 @@ regex_t int_literal;
 
 regex_t keywords[9];
 
+/**
+ *Initializes regular expression variables for use in lexing, and adds them to the keywords list.
+ *
+ * return void
+ **/
 void initRegexp(){
   int flag = 0;
   flag += regcomp(&openBrace, "{", 0);
@@ -68,6 +73,13 @@ void initRegexp(){
   keywords[8] = identifier;
 }
 
+/**
+ * Creates a new token data type, and returns its pointer.
+ *
+ * param value - String containing the value of the token ('main'/'int'/'16', etc)
+ * param type - Enum of the type of token (for '16, type would be INT_LITERAL, value of 5)
+ * return token_t* - returns a pointer to the newly created token
+ **/
 token_t *createToken(char *value, TOKEN_TYPE type){
   if(value == NULL){
     fprintf(stderr, "Attempted to create token with null value\n");
@@ -84,6 +96,12 @@ token_t *createToken(char *value, TOKEN_TYPE type){
   return newToken;
 }
 
+/**
+ * freeRegs()
+ * Free's all of the created keyword regular expressions.
+ *
+ * return void
+ **/
 void freeRegs(){
   int i;
   for(i = 0; i < NUM_KEYWORDS; i++){
@@ -91,6 +109,14 @@ void freeRegs(){
   }
 }
 
+/**
+ * printSubstr(char *line, int start, int end)
+ * Prints a substring, given start/end indexes and the string.
+ *
+ * param line - the string to print the substring from.
+ * param start - the starting index to print the substring from.
+ * param end - the ending index of the substring being printed.
+ **/
 void printSubstr(char *line, int start, int end){
   int i;
   for(i = 0; i < end-start; i++){
@@ -98,20 +124,12 @@ void printSubstr(char *line, int start, int end){
   }
 }
 
-//addToken for global array tokenList, deprecated
-//char* addToken(char *line, int start, int end, int* numTokens){
-//  char *token = NULL;
-//  token = malloc(sizeof(char)*100);
-//  if(token == NULL){
-//    fprintf(stderr, "Failed to allocate space for token.\n");
-//    exit(1);
-//  }
-//  strncat(token, &line[start], end-start);
-//  tokens[*numTokens] = token;
-//  (*numTokens)++;
-//  return token;
-//}
-
+/**
+ * initTokenlist()
+ * Allocates space and initializes an empty token list.
+ *
+ * return tokenlist_t* - returns the newly initialized token list
+ **/
 tokenlist_t *initTokenlist(){
   tokenlist_t *tokens;
   tokens = (tokenlist_t*) malloc(sizeof(tokenlist_t));
@@ -123,15 +141,36 @@ tokenlist_t *initTokenlist(){
   return tokens;
 }
 
+/**
+ * popToken(tokenlist_t *tokens)
+ * Pops a token off of the linked list, and returns it
+ *
+ * param *tokens - the tokenlist to pop a token from
+ * return token_t* - returns a pointer to the popped token
+ **/
 token_t *popToken(tokenlist_t *tokens){
   if(tokens->head == NULL)
     return NULL;
+  //If one token left in list...
   token_t *popped = tokens->head;
+  if(tokens->head == tokens->tail){
+    tokens->head = NULL;
+    tokens->tail = NULL;
+      return popped;
+  }
   tokens->head = popped->next;
   popped->next = NULL;
   return popped;
 }
 
+/**
+ * appendToken(tokenlist_t *tokens, token_t *token)
+ * Appends the provided token to the provided tokenlist
+ *
+ * param *tokens - the token list to append the token to
+ * param *token - the token to append to the token list
+ * return void
+ **/
 void appendToken(tokenlist_t *tokens, token_t *token){
 
   if(tokens == NULL){
@@ -155,6 +194,12 @@ void appendToken(tokenlist_t *tokens, token_t *token){
   }
 }
 
+/**
+ * *lex()
+ * Lex's the source file (path provided in argv[1] of main), and returns a list of valid tokens
+ *
+ * return tokenlist_t* - returns a list of valid tokens from the source file
+ **/
 tokenlist_t *lex(){
   FILE *sourceFile;
   char *fileBuf = NULL;
@@ -234,6 +279,13 @@ tokenlist_t *lex(){
   return tokens;
 }
 
+/**
+ * printTokens(tokenlist_t *tokens)
+ * Prints the values of all tokens in the provided token list
+ *
+ * param *tokens - the list of tokens to print from
+ * return void
+ **/
 void printTokens(tokenlist_t *tokens){
   printf("Tokens:\n");
   if(tokens->head == NULL)
@@ -246,6 +298,13 @@ void printTokens(tokenlist_t *tokens){
 }
 
 
+/**
+ * freeTokens(tokenlist_t *tokens)
+ * Frees all tokens in the provided token list, as well as the token list itself
+ *
+ * param *tokens - the token list to free
+ * return void
+ **/
 void freeTokens(tokenlist_t *tokens){
   if(tokens == NULL)
     return;
