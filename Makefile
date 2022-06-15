@@ -5,7 +5,7 @@
 SRCDIR := src
 OBJDIR := obj
 
-OBJECTS := $(OBJDIR)/lex.o $(OBJDIR)/comp.o
+OBJECTS := $(OBJDIR)/lex.o $(OBJDIR)/comp.o $(OBJDIR)/parse.o
 
 all: comp
 

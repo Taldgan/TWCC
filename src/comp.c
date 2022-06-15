@@ -1,5 +1,6 @@
 //Compiler imports
 #include "lex.h"
+#include "parse.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +23,12 @@ int main(int argc, char *argv[]) {
   initRegexp();
   tokenlist_t *tokens = lex();
   printf("Token List Size: %d\n", tokens->numTokens);
+  puts("");
+  astnode_t * progAST = parseProgram(tokens);
+  printf("── printing AST ──\n");
+  printAST(progAST);
+  //generate(progAST);
+  //Free's
   freeTokens(tokens);
   freeRegs();
   return 0;
