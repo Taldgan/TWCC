@@ -3,6 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * parseExpression(tokenlist_t *tokens)
+ * Parses an expression, returning a expression-type AST node
+ *
+ * param *tokens - the token list to parse the expression from
+ * return astnode_t* - returns a expression AST node
+ **/
 astnode_t *parseExpression(tokenlist_t *tokens){
   token_t *currToken = NULL;
   astnode_t *exprNode = NULL;
@@ -21,6 +28,13 @@ astnode_t *parseExpression(tokenlist_t *tokens){
   return exprNode;
 }
 
+/**
+ * parseStatement(tokenlist_t *tokens)
+ * Parses a statement, returning a statement-type AST node
+ *
+ * param *tokens - the token list to parse the statement from
+ * return astnode_t* - returns a statement AST node
+ **/
 astnode_t *parseStatement(tokenlist_t *tokens){
   token_t *currToken = NULL;
   astnode_t *statementNode = NULL;
@@ -44,6 +58,13 @@ astnode_t *parseStatement(tokenlist_t *tokens){
   return statementNode;
 }
 
+/**
+ * parseFunction(tokenlist_t *tokens)
+ * Parses a function, returning a function-type AST node
+ *
+ * param *tokens - the token list to parse the function from
+ * return astnode_t* - returns a function AST node
+ **/
 astnode_t *parseFunction(tokenlist_t *tokens){
   token_t *currToken = NULL;
   currToken = popToken(tokens);
@@ -94,6 +115,13 @@ astnode_t *parseFunction(tokenlist_t *tokens){
   return funcNode;
 }
 
+/**
+ * parseProgram(tokenlist_t *tokens)
+ * Parses a program, returning a program-type AST node
+ *
+ * param *tokens - the token list to parse the program from
+ * return astnode_t* - returns a function AST node
+ **/
 astnode_t* parseProgram(tokenlist_t *tokens){
   printf("── parsing %s ──\n", sourcePath);
   astnode_t *root = NULL;
@@ -112,6 +140,13 @@ astnode_t* parseProgram(tokenlist_t *tokens){
   return root;
 }
 
+/**
+ * printASTNodeType(astnode_t *node)
+ * When provided an AST Node, it prints the nodeType enum as a string
+ *
+ * param *node - the node to print the nodeType of
+ * return void
+ **/
 void printASTNodeType(astnode_t *node){
   if(node == NULL)
     return;
@@ -135,6 +170,13 @@ void printASTNodeType(astnode_t *node){
   }
 }
 
+/**
+ * printAST(astnode_t *root)
+ * When provided an AST, it prints its function names & bodies
+ *
+ * param *root - the root node of the AST to print
+ * return void
+ **/
 void printAST(astnode_t *root){
   if(root == NULL)
     return;

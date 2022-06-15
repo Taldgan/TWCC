@@ -1,6 +1,7 @@
 //Compiler imports
 #include "lex.h"
 #include "parse.h"
+#include "gen.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +28,7 @@ int main(int argc, char *argv[]) {
   astnode_t * progAST = parseProgram(tokens);
   printf("── printing AST ──\n");
   printAST(progAST);
-  //generate(progAST);
+  generate(progAST);
   //Free's
   freeTokens(tokens);
   freeRegs();
