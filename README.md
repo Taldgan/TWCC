@@ -8,7 +8,7 @@ Following this guide for the general process, which is broken into steps without
 ## Installion
 
 Its about as easy as it gets - clone the repo, compile it with 'make',
-and run the program with ./compiler <file to compile>
+and run the program with ./compiler \<file to compile>
 
 Once the .s file is generated, use gcc to assemble and link the .s file.
-(gcc -m32 <.s file> -o <executable name> )
+(gcc -m32 \<.s file> -o \<executable name> )
