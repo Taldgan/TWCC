@@ -257,8 +257,7 @@ tokenlist_t *lex(){
     lineNum++;
     line = strtok(NULL, "\n");
   }
-  printf("Number of tokens identified: %d\n", numTokens);
-  tokenListSize = numTokens;
+  printf("Number of tokens identified: %d\n", tokens->numTokens);
   free(fileBuf);
   free(line);
   return tokens;
