@@ -28,10 +28,11 @@ FILE *getOutFile(){
 }
 
 /**
- * generate(astnode_t *root)
+ * generate(astnode_t *root, FILE *outFile)
  * Given a valid AST, generates assemblable assembly and writes it to a file.
  *
- * param astnode_t *root - the PROGRAM node of the ast
+ * param *root - the PROGRAM node of the ast
+ * param *outFile - the file pointer to write the assembly to
  * return void
  **/
 void generate(astnode_t *root, FILE *outFile){

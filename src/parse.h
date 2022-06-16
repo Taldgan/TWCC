@@ -12,6 +12,7 @@ typedef union fields {
     char *strVal;
     struct children{
       struct astnode_t *left;
+      struct astnode_t *middle;
       struct astnode_t *right;
     } children;
 } fields;
