@@ -34,20 +34,50 @@ FILE *getOutFile(){
  * param astnode_t *root - the PROGRAM node of the ast
  * return void
  **/
-void generate(astnode_t *root){
+void generate(astnode_t *root, FILE *outFile){
   if(root == NULL){
     fprintf(stderr, "Null AST node, cannot generate assembly.\n");
     exit(1);
   }
-  FILE *outFile = getOutFile();
-  //Now traverse AST and use it to generate assembly
-  astnode_t *currNode = root->fields.children.left;
-  char *funcName = currNode->fields.children.left->fields.strVal;
-  fprintf(outFile, " .globl %s\n", funcName);
-  fprintf(outFile, "%s:\n", funcName);
-  currNode = currNode->fields.children.right;
-  currNode = currNode->fields.children.left;
-  fprintf(outFile, " movl $%d, %%eax\n", currNode->fields.intVal);
-  fprintf(outFile, " ret\n");
+  astnode_t *currNode = root;
+  //Now recursively traverse AST and use it to generate assembly
+  if(currNode->nodeType == PROGRAM){
+    generate(currNode->fields.children.left, outFile);
+    return;
+  }
+  else if(currNode->nodeType == FUNCTION){
+    char *funcName = currNode->fields.children.left->fields.strVal;
+    fprintf(outFile, " .globl %s\n%s:\n", funcName, funcName);
+    generate(currNode->fields.children.right, outFile);
+    fprintf(outFile, " ret\n");
+    return;
+  }
+  else if(currNode->nodeType == STATEMENT){
+    //Not much to do with a statement yet, moving on...
+    generate(currNode->fields.children.left, outFile);
+    return;
+  }
+  else if(currNode->nodeType == INTEGER){
+    fprintf(outFile, " movl $%d, %%eax\n", currNode->fields.intVal);
+    return;
+  }
+  else if(currNode->nodeType == UN_OP){
+    char opType = currNode->fields.children.left->fields.strVal[0];
+    generate(currNode->fields.children.right, outFile);
+    switch(opType){
+      case '~':
+        fprintf(outFile, " not %%eax\n");
+        break;
+      case '!':
+        fprintf(outFile, " cmpl $0, %%eax\n");
+        fprintf(outFile, " movl $0, %%eax\n");
+        fprintf(outFile, " sete %%al\n");
+        break;
+      case '-':
+        fprintf(outFile, " neg %%eax\n");
+        break;
+    }
+    return;
+  }
   fclose(outFile);
 }

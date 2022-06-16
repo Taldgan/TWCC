@@ -28,7 +28,8 @@ int main(int argc, char *argv[]) {
   astnode_t * progAST = parseProgram(tokens);
   printf("── printing AST ──\n");
   printAST(progAST);
-  //generate(progAST);
+  FILE *outFile = getOutFile();
+  generate(progAST, outFile);
   //Free's
   freeTokens(tokens);
   freeRegs();

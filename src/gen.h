@@ -5,6 +5,6 @@
 #include <stdio.h>
 
 FILE *getOutFile();
-void generate(astnode_t *root);
+void generate(astnode_t *root, FILE *outFile);
 
 #endif // GEN_H_
