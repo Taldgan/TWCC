@@ -213,11 +213,11 @@ tokenlist_t *lex(){
   char *line = 0;
   int lineNum = 0;
 
-  printf("── lexing %s ──\n\n", sourcePath);
+  //printf("── lexing %s ──\n\n", sourcePath);
   line = strtok(fileBuf, "\n");
   //Parse line for tokens
   while(line){
-    printf("line %d: %s\n", lineNum, line);
+    //printf("line %d: %s\n", lineNum, line);
     //while inside line, parse and identify as many tokens as possible
     //update token search offset in line as tokens are identified in order
     //int main() { - should find 'int' 'main' '(' ')' '{'
@@ -229,6 +229,11 @@ tokenlist_t *lex(){
     int minEnd = lineLen;
     TOKEN_TYPE tokType = -1;
     while(line[0] != '\0'){
+      //Chew through whitespace in line
+      if(isspace(line[0]) != 0){
+        line++;
+        continue;
+      }
       for(i = 0; i < NUM_KEYWORDS; i++){
         if(regexec(&keywords[i], line, 1, &pmatch, 0) == 0){
           //If lower index match is found, update minStart & minEnd
@@ -238,11 +243,10 @@ tokenlist_t *lex(){
             tokType = (TOKEN_TYPE) i;
           }
         }
-        //Need to add else for invalid token types...
       }
-      printf("\tToken found: ");
-      printSubstr(line, minStart, minEnd);
-      puts("");
+      //printf("\tToken found: ");
+      //printSubstr(line, minStart, minEnd);
+      //puts("");
       token_t *newToken = createToken(strndup(&line[minStart], minEnd-minStart), tokType);
       appendToken(tokens, newToken);
       tokens->numTokens++;
@@ -257,7 +261,7 @@ tokenlist_t *lex(){
     lineNum++;
     line = strtok(NULL, "\n");
   }
-  printf("Number of tokens identified: %d\n", tokens->numTokens);
+  //printf("Number of tokens identified: %d\n", tokens->numTokens);
   free(fileBuf);
   free(line);
   return tokens;

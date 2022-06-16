@@ -123,7 +123,7 @@ astnode_t *parseFunction(tokenlist_t *tokens){
  * return astnode_t* - returns a function AST node
  **/
 astnode_t* parseProgram(tokenlist_t *tokens){
-  printf("── parsing %s ──\n", sourcePath);
+  //printf("── parsing %s ──\n", sourcePath);
   astnode_t *root = NULL;
   if(tokens == NULL){
     fprintf(stderr, "Cannot parse program, null token list.\n");
@@ -136,7 +136,7 @@ astnode_t* parseProgram(tokenlist_t *tokens){
   }
   root->nodeType = PROGRAM;
   root->fields.children.left = parseFunction(tokens);
-  printf(" - parsing complete -\n\n");
+  //printf(" - parsing complete -\n\n");
   return root;
 }
 

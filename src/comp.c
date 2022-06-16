@@ -23,11 +23,11 @@ int main(int argc, char *argv[]) {
   }
   initRegexp();
   tokenlist_t *tokens = lex();
-  printf("Token List Size: %d\n", tokens->numTokens);
-  puts("");
+  //printf("Token List Size: %d\n", tokens->numTokens);
+  //printTokens(tokens);
   astnode_t * progAST = parseProgram(tokens);
-  printf("── printing AST ──\n");
-  printAST(progAST);
+  //printf("── printing AST ──\n");
+  //printAST(progAST);
   generate(progAST);
   //Free's
   freeTokens(tokens);
