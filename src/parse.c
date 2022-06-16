@@ -7,6 +7,8 @@
  * parseExpression(tokenlist_t *tokens)
  * Parses an expression, returning a expression-type AST node
  *
+ * <expression> ::= CONST | UNARY <expression>
+ *
  * param *tokens - the token list to parse the expression from
  * return astnode_t* - returns a expression AST node
  **/
@@ -14,17 +16,32 @@ astnode_t *parseExpression(tokenlist_t *tokens){
   token_t *currToken = NULL;
   astnode_t *exprNode = NULL;
   currToken = popToken(tokens);
-  if(currToken == NULL || currToken->type != INT_LITERAL){
-    fprintf(stderr, "Int literal did not follow return statement, invalid format.\n");
+  if(currToken == NULL || (currToken->type != INT_LITERAL && (currToken->type != NEGATION && currToken->type != BITWISE_COMP && currToken->type != LOGIC_NEG))){
+    fprintf(stderr, "No value followed return statement.\n");
     exit(1);
   }
   exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
-  exprNode->nodeType = EXPRESSION;
+  //Not int literal, must be a unary operator (as of right now)
+  if(currToken->type != INT_LITERAL){
+    astnode_t *unOp = (astnode_t*) malloc(sizeof(astnode_t)*1);
+    if(unOp == NULL){
+      fprintf(stderr, "Failed to allocate space for unary operator node.\n");
+      exit(1);
+    }
+    unOp->fields.strVal = currToken->value;
+    unOp->nodeType = DATA;
+    exprNode->fields.children.left = unOp;
+    exprNode->fields.children.right = parseExpression(tokens);
+    exprNode->nodeType = UN_OP;
+  }
+  else{
+    exprNode->nodeType = INTEGER;
+    exprNode->fields.intVal = atoi(currToken->value);
+  }
   if(exprNode == NULL){
     fprintf(stderr, "Failed to allocate space for expression node.\n");
     exit(1);
   }
-  exprNode->fields.intVal = atoi(currToken->value);
   return exprNode;
 }
 
@@ -44,7 +61,7 @@ astnode_t *parseStatement(tokenlist_t *tokens){
   }
   currToken = popToken(tokens);
   if(currToken == NULL || currToken->type != RET_KEYW){
-    fprintf(stderr, "Statement did not begin with return, invalid format.\n");
+    fprintf(stderr, "Statement did not begin with return.\n");
     exit(1);
   }
   statementNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
@@ -52,7 +69,7 @@ astnode_t *parseStatement(tokenlist_t *tokens){
   statementNode->fields.children.left = parseExpression(tokens);
   currToken = popToken(tokens);
   if(currToken == NULL || currToken->type != SEMICOLON){
-    fprintf(stderr, "Statement did not end with semicolon, invalid format.\n");
+    fprintf(stderr, "Statement did not end with semicolon.\n");
     exit(1);
   }
   return statementNode;
@@ -71,19 +88,19 @@ astnode_t *parseFunction(tokenlist_t *tokens){
   astnode_t *funcNode = NULL;
   char *funcName = NULL;
   if(currToken == NULL || currToken->type != INT_KEYW){
-    fprintf(stderr, "Function did not begin with int keyword, invalid format.\n");
+    fprintf(stderr, "Function did not begin with int keyword.\n");
     exit(1);
   }
   currToken = popToken(tokens);
   if(currToken == NULL || currToken->type != IDENTIFIER){
-    fprintf(stderr, "Identifier did not follow int keyword, invalid format.\n");
+    fprintf(stderr, "Identifier did not follow int keyword.\n");
     exit(1);
   }
   funcName = currToken->value;
   funcNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
   funcNode->nodeType = FUNCTION;
   funcNode->fields.children.left = (astnode_t *) malloc(sizeof(astnode_t)*1);
-  funcNode->fields.children.left->nodeType = FUNCNAME;
+  funcNode->fields.children.left->nodeType = DATA;
   if(funcNode->fields.children.left == NULL){
     fprintf(stderr, "Failed to allocate space for function name node.\n");
     exit(1);
@@ -92,24 +109,24 @@ astnode_t *parseFunction(tokenlist_t *tokens){
   funcNode->fields.children.left->fields.strVal = funcName;
   currToken = popToken(tokens);
   if(currToken == NULL || currToken->type != OPEN_PAREN){
-    fprintf(stderr, "Open parenthese did not follow identifier, invalid format.\n");
+    fprintf(stderr, "Open parenthese did not follow identifier.\n");
     exit(1);
   }
   currToken = popToken(tokens);
   if(currToken == NULL || currToken->type != CLOSED_PAREN){
-    fprintf(stderr, "Closed parenthese did not follow open parenthese, invalid format.\n");
+    fprintf(stderr, "Closed parenthese did not follow open parenthese.\n");
     exit(1);
   }
   currToken = popToken(tokens);
   if(currToken == NULL || currToken->type != OPEN_BRACE){
-    fprintf(stderr, "Open bracket did not follow closed parenthese, invalid format.\n");
+    fprintf(stderr, "Open bracket did not follow closed parenthese.\n");
     exit(1);
   }
   //Create func body
   funcNode->fields.children.right = parseStatement(tokens);
   currToken = popToken(tokens);
   if(currToken == NULL || currToken->type != CLOSED_BRACE){
-    fprintf(stderr, "Closed bracket missing for function %s, invalid format.\n", funcName);
+    fprintf(stderr, "Closed bracket missing for function %s.\n", funcName);
     exit(1);
   }
   return funcNode;
@@ -164,15 +181,21 @@ void printASTNodeType(astnode_t *node){
     case EXPRESSION:
       printf("EXPRESSION");
       break;
-    case FUNCNAME:
-      printf("FUNCNAME");
+    case DATA:
+      printf("DATA");
+      break;
+    case INTEGER:
+      printf("INTEGER");
+      break;
+    case UN_OP:
+      printf("UN_OP");
       break;
   }
 }
 
 /**
  * printAST(astnode_t *root)
- * When provided an AST, it prints its function names & bodies
+ * When provided an AST, it prints its function names & bodies (recursively)
  *
  * param *root - the root node of the AST to print
  * return void
@@ -181,12 +204,27 @@ void printAST(astnode_t *root){
   if(root == NULL)
     return;
   astnode_t *currNode = root;
-  printASTNodeType(currNode);
+  if(currNode->nodeType == PROGRAM){
+    printAST(currNode->fields.children.left);
+  }
+  else if(currNode->nodeType == FUNCTION){
+    printf("FUNC INT %s\n\tbody:\n", currNode->fields.children.left->fields.strVal);
+    printAST(currNode->fields.children.right);
+    return;
+  }
+  else if(currNode->nodeType == STATEMENT){
+    printf("\treturn ");
+    printAST(currNode->fields.children.left);
+    return;
+  }
+  else if(currNode->nodeType == UN_OP){
+    printf("%s", currNode->fields.children.left->fields.strVal);
+    printAST(currNode->fields.children.right);
+    return;
+  }
+  else if(currNode->nodeType == INTEGER){
+    printf("%d;", currNode->fields.intVal);
+    return;
+  }
   puts("");
-  currNode = currNode->fields.children.left;
-  printASTNodeType(currNode);
-  printf(" INT %s\n", currNode->fields.children.left->fields.strVal);
-  currNode = currNode->fields.children.right;
-  puts("\tbody:");
-  printf("\t\treturn %d\n", currNode->fields.children.left->fields.intVal);
 }

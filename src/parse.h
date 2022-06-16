@@ -4,7 +4,8 @@
 #include "lex.h"
 
 //Abstract Syntax Tree data types
-typedef enum AST_TYPE {PROGRAM, FUNCTION, STATEMENT, EXPRESSION, FUNCNAME} AST_TYPE;
+typedef enum AST_TYPE {PROGRAM, FUNCTION, STATEMENT, EXPRESSION,
+                       DATA, INTEGER, UN_OP} AST_TYPE;
 
 typedef union fields {
     int intVal;
