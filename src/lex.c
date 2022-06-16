@@ -7,20 +7,14 @@
 
 //Token Regex Types
 //Single char keywords
-regex_t openBrace;
-regex_t closeBrace;
-regex_t openParen;
-regex_t closeParen;
-regex_t semicolon;
+regex_t openBrace, closeBrace, openParen, closeParen, semicolon;
 
 //Multi char keywords
-regex_t int_keyw;
-regex_t ret_keyw;
+regex_t int_keyw, ret_keyw, identifier, int_literal;
 
-regex_t identifier;
-regex_t int_literal;
+regex_t negation, bitwise_comp, logic_neg;
 
-regex_t keywords[9];
+regex_t keywords[NUM_KEYWORDS];
 
 /**
  * initRegexp()
@@ -39,6 +33,9 @@ void initRegexp(){
   flag += regcomp(&ret_keyw, "return", 0);
   flag += regcomp(&int_literal, "[0-9]\\+", 0);
   flag += regcomp(&identifier, "[a-zA-Z]\\w*", 0);
+  flag += regcomp(&negation, "-", 0);
+  flag += regcomp(&bitwise_comp, "~", 0);
+  flag += regcomp(&logic_neg, "!", 0);
   if(flag > 0){
     fprintf(stderr, "Failed to init 1 or more regular expressions.\n");
     exit(1);
@@ -53,6 +50,9 @@ void initRegexp(){
   keywords[6] = ret_keyw;
   keywords[7] = int_literal;
   keywords[8] = identifier;
+  keywords[9] = negation;
+  keywords[10] = bitwise_comp;
+  keywords[11] = logic_neg;
 }
 
 /**

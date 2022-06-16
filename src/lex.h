@@ -2,13 +2,15 @@
 #define LEX_H_
 
 #define LEN_PATH 4097
-#define NUM_KEYWORDS 9
+#define NUM_KEYWORDS 12
 
 extern char sourcePath[LEN_PATH];
 
 
 //Token-related data types
-typedef enum TOKEN_TYPE {OPEN_BRACE, CLOSED_BRACE, OPEN_PAREN, CLOSED_PAREN, SEMICOLON, INT_KEYW, RET_KEYW, INT_LITERAL, IDENTIFIER} TOKEN_TYPE;
+typedef enum TOKEN_TYPE {OPEN_BRACE, CLOSED_BRACE, OPEN_PAREN, CLOSED_PAREN, SEMICOLON,
+                         INT_KEYW, RET_KEYW, INT_LITERAL, IDENTIFIER,
+                         NEGATION, BITWISE_COMP, LOGIC_NEG} TOKEN_TYPE;
 
 //Tokenlist node, contains token data and pointer to next token (if available)
 typedef struct token_t {
