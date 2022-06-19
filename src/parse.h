@@ -5,7 +5,7 @@
 
 //Abstract Syntax Tree data types
 typedef enum AST_TYPE {PROGRAM, FUNCTION, STATEMENT, EXPRESSION,
-                       DATA, INTEGER, UN_OP} AST_TYPE;
+                       DATA, INTEGER, UN_OP, BIN_OP} AST_TYPE;
 
 typedef union fields {
     int intVal;

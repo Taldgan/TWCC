@@ -4,10 +4,69 @@
 #include <stdlib.h>
 
 /**
+ * parseTerm(tokenlist_t *tokens)
+ *
+ **/
+
+/**
+ * parseFactor(tokenlist_t *tokens)
+ * Pare a factor, returnaing a factor-type AST node
+ *
+ * <factor> ::= "(" <expression> ")" | <un_op> <factor> | <int>
+ **/
+astnode_t *parseFactor(tokenlist_t *tokens){
+  token_t *currToken = NULL;
+  astnode_t *factNode = NULL;
+  currToken = popToken(tokens);
+  if(currToken == NULL){
+    fprintf(stderr, "No value/operator followed unary operator.\n");
+    exit(1);
+  }
+  factNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
+  //next 2 need to be another expression & then closed parentheses
+  if(currToken->type == OPEN_PAREN){
+    astnode_t *exprNode = NULL;
+    exprNode = parseExpression(tokens);
+    currToken = popToken(tokens);
+    if(currToken->type != CLOSED_PAREN){
+      fprintf(stderr, "Missing closed parentheses in factor.\n");
+      exit(1);
+    }
+    factNode->nodeType = EXPRESSION;
+    factNode->fields.children.left = exprNode;
+    return factNode;
+  }
+  //Else unop, has to be followed by another factor
+  else if(currToken->type == NEGATION || currToken->type == BITWISE_COMP || currToken->type == LOGIC_NEG){
+    astnode_t *unOp = (astnode_t*) malloc(sizeof(astnode_t)*1);
+    if(unOp == NULL){
+      fprintf(stderr, "Failed to allocate space for unary operator node.\n");
+      exit(1);
+    }
+    unOp->fields.strVal = currToken->value;
+    unOp->nodeType = DATA;
+    factNode->fields.children.left = unOp;
+    factNode->fields.children.right = parseFactor(tokens);
+    factNode->nodeType = UN_OP;
+    return factNode;
+  }
+  else if(currToken->type == INT_LITERAL){
+    //Int, return
+    factNode->nodeType = INTEGER;
+    factNode->fields.intVal = atoi(currToken->value);
+    return factNode;
+  }
+  else{
+    fprintf(stderr, "Unary op has to applied to factor, invalid format.\n");
+    exit(1);
+  }
+  return NULL;
+}
+/**
  * parseExpression(tokenlist_t *tokens)
  * Parses an expression, returning a expression-type AST node
  *
- * <expression> ::= CONST | UNARY <expression>
+ * <expression> ::= <expression> <bin_op> <expression> | <factor>
  *
  * param *tokens - the token list to parse the expression from
  * return astnode_t* - returns a expression AST node
@@ -21,23 +80,36 @@ astnode_t *parseExpression(tokenlist_t *tokens){
     exit(1);
   }
   exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
-  //Not int literal, must be a unary operator (as of right now)
-  if(currToken->type != INT_LITERAL){
-    astnode_t *unOp = (astnode_t*) malloc(sizeof(astnode_t)*1);
-    if(unOp == NULL){
-      fprintf(stderr, "Failed to allocate space for unary operator node.\n");
+  //if binary operation
+  if(tokens->head->type == ADD_OP || tokens->head->type == MULT_OP || tokens->head->type == DIV_OP){
+    astnode_t *leftOperand = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    astnode_t *rightOperand = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(leftOperand == NULL || operator == NULL || rightOperand == NULL){
+      fprintf(stderr, "Failed to allocate space for binary operator or operands.\n");
       exit(1);
     }
-    unOp->fields.strVal = currToken->value;
-    unOp->nodeType = DATA;
-    exprNode->fields.children.left = unOp;
-    exprNode->fields.children.right = parseExpression(tokens);
-    exprNode->nodeType = UN_OP;
+    char *opType = tokens->head->value;
+    tokens->head->value = currToken->value;
+    tokens->head->type = currToken->type;
+    operator->fields.strVal = opType;
+    if(currToken == NULL){
+      fprintf(stderr, "Missing value after operator %s.\n", operator->fields.strVal);
+      exit(1);
+    }
+    leftOperand = parseExpression(tokens);
+    rightOperand = parseExpression(tokens);
+    exprNode->nodeType = BIN_OP;
+    exprNode->fields.children.left = leftOperand;
+    exprNode->fields.children.middle = operator;
+    exprNode->fields.children.right = rightOperand;
+    return exprNode;
   }
+  //else factor?
   else{
-    exprNode->nodeType = INTEGER;
-    exprNode->fields.intVal = atoi(currToken->value);
+
   }
+
   if(exprNode == NULL){
     fprintf(stderr, "Failed to allocate space for expression node.\n");
     exit(1);
@@ -190,6 +262,9 @@ void printASTNodeType(astnode_t *node){
     case UN_OP:
       printf("UN_OP");
       break;
+    case BIN_OP:
+      printf("BIN_OP");
+      break;
   }
 }
 
@@ -215,6 +290,7 @@ void printAST(astnode_t *root){
   else if(currNode->nodeType == STATEMENT){
     printf("\treturn ");
     printAST(currNode->fields.children.left);
+    printf(";");
     return;
   }
   else if(currNode->nodeType == UN_OP){
@@ -223,7 +299,13 @@ void printAST(astnode_t *root){
     return;
   }
   else if(currNode->nodeType == INTEGER){
-    printf("%d;", currNode->fields.intVal);
+    printf("%d", currNode->fields.intVal);
+    return;
+  }
+  else if(currNode->nodeType == BIN_OP){
+    printAST(currNode->fields.children.left);
+    printf(" %s ", currNode->fields.children.middle->fields.strVal);
+    printAST(currNode->fields.children.right);
     return;
   }
   puts("");

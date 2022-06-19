@@ -14,7 +14,7 @@ regex_t int_keyw, ret_keyw, identifier, int_literal;
 
 regex_t negation, bitwise_comp, logic_neg;
 
-regex_t add_op;
+regex_t add_op, mult_op, div_op;
 
 regex_t keywords[NUM_KEYWORDS];
 
@@ -39,6 +39,8 @@ void initRegexp(){
   flag += regcomp(&bitwise_comp, "~", 0);
   flag += regcomp(&logic_neg, "!", 0);
   flag += regcomp(&add_op, "+", 0);
+  flag += regcomp(&mult_op, "*", 0);
+  flag += regcomp(&div_op, "/", 0);
   if(flag > 0){
     fprintf(stderr, "Failed to init 1 or more regular expressions.\n");
     exit(1);
@@ -57,6 +59,8 @@ void initRegexp(){
   keywords[10] = bitwise_comp;
   keywords[11] = logic_neg;
   keywords[12] = add_op;
+  keywords[13] = mult_op;
+  keywords[14] = div_op;
 }
 
 /**
