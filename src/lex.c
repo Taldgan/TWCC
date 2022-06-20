@@ -16,7 +16,7 @@ regex_t negation, bitwise_comp, logic_neg;
 
 regex_t add_op, mult_op, div_op;
 
-regex_t and_op, or_op, eq_to, lt_op, le_op, gt_op, ge_op;
+regex_t and_op, or_op, eq_to, neq_to, lt_op, le_op, gt_op, ge_op;
 
 regex_t keywords[NUM_KEYWORDS];
 
@@ -46,6 +46,7 @@ void initRegexp(){
   flag += regcomp(&and_op, "&&", 0);
   flag += regcomp(&or_op, "||", 0);
   flag += regcomp(&eq_to, "==", 0);
+  flag += regcomp(&neq_to, "!=", 0);
   flag += regcomp(&lt_op, "<", 0);
   flag += regcomp(&le_op, "<=", 0);
   flag += regcomp(&gt_op, ">", 0);
@@ -73,10 +74,11 @@ void initRegexp(){
   keywords[15] = and_op;
   keywords[16] = or_op;
   keywords[17] = eq_to;
-  keywords[18] = lt_op;
-  keywords[19] = le_op;
-  keywords[20] = gt_op;
-  keywords[21] = ge_op;
+  keywords[18] = neq_to;
+  keywords[19] = lt_op;
+  keywords[20] = le_op;
+  keywords[21] = gt_op;
+  keywords[22] = ge_op;
 }
 
 /**
