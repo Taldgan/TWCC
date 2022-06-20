@@ -12,14 +12,16 @@ all: comp
 comp: $(OBJECTS)
 	gcc $(OBJDIR)/*.o -ggdb -m32 -o compiler
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
-	gcc -c -m32 -ggdb  $<
-	mv *.o $(OBJDIR)
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(OBJDIR)
+	gcc -c -m32 -ggdb $< -o $@
+
+$(OBJDIR):
+	mkdir $(OBJDIR)
 
 .PHONY: clean
 
 clean:
-	rm -f ./obj/*
-	rm compiler
+	rm -f $(OBJDIR)/*.o
+	rm -f compiler
 
 # end

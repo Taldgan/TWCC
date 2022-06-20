@@ -58,10 +58,12 @@ void generate(astnode_t *root, FILE *outFile){
     generate(currNode->fields.children.left, outFile);
     return;
   }
+  //Just an integer, move it into eax
   else if(currNode->nodeType == INTEGER){
     fprintf(outFile, " movl $%d, %%eax\n", currNode->fields.intVal);
     return;
   }
+  //Unary op
   else if(currNode->nodeType == UNARY_OP){
     char opType = currNode->fields.children.left->fields.strVal[0];
     generate(currNode->fields.children.right, outFile);
@@ -80,6 +82,7 @@ void generate(astnode_t *root, FILE *outFile){
     }
     return;
   }
+  //Binary op statement
   else if(currNode->nodeType == BINARY_OP){
     char opType = currNode->fields.children.middle->fields.strVal[0];
     switch(opType){
