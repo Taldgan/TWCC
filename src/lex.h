@@ -36,6 +36,8 @@ void freeRegs();
 //Token functions
 tokenlist_t *initTokenlist();
 token_t *popToken(tokenlist_t *tokens);
+void prependToken(tokenlist_t *tokens, token_t *token);
+token_t *peek(tokenlist_t *tokens);
 void appendToken(tokenlist_t *tokens, token_t *token);
 void printTokens(tokenlist_t *tokens);
 void freeTokens(tokenlist_t *tokens);

@@ -156,6 +156,41 @@ token_t *popToken(tokenlist_t *tokens){
 }
 
 /**
+ * prependToken(tokenlist_t *tokens, token_t *token)
+ * Prepends the provided token to the provided tokenlist
+ *
+ * param *tokens - the token list to prepend the token to
+ * param *token - the token to prepend to the token list
+ * return void
+ **/
+void prependToken(tokenlist_t *tokens, token_t *token){
+  if(token == NULL){
+    return;
+  }
+  if(tokens->head == NULL){
+    tokens->head = token;
+    tokens->tail = token;
+    return;
+  }
+  token->next = tokens->head;
+  tokens->head = token;
+}
+
+/**
+ * peek(tokenlist_t *tokens)
+ * Peeks the token list, returning its top element
+ *
+ * param *tokens - the token list to peek
+ * return token_t* - returns pointer to head of the token list
+ **/
+token_t *peek(tokenlist_t *tokens){
+  if(tokens == NULL){
+    return NULL;
+  }
+  return tokens->head;
+}
+
+/**
  * appendToken(tokenlist_t *tokens, token_t *token)
  * Appends the provided token to the provided tokenlist
  *

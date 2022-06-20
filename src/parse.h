@@ -5,7 +5,7 @@
 
 //Abstract Syntax Tree data types
 typedef enum AST_TYPE {PROGRAM, FUNCTION, STATEMENT, EXPRESSION,
-                       DATA, INTEGER, UN_OP, BIN_OP} AST_TYPE;
+                       DATA, INTEGER, UNARY_OP, BINARY_OP, TERM} AST_TYPE;
 
 typedef union fields {
     int intVal;
@@ -23,6 +23,8 @@ typedef struct astnode_t {
 } astnode_t;
 
 //Parsing functions
+astnode_t *parseTerm(tokenlist_t *tokens);
+astnode_t *parseFactor(tokenlist_t *tokens);
 astnode_t *parseExpression(tokenlist_t *tokens);
 astnode_t *parseStatement(tokenlist_t *tokens);
 astnode_t *parseFunction(tokenlist_t *tokens);

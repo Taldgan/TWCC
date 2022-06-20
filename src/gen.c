@@ -62,7 +62,7 @@ void generate(astnode_t *root, FILE *outFile){
     fprintf(outFile, " movl $%d, %%eax\n", currNode->fields.intVal);
     return;
   }
-  else if(currNode->nodeType == UN_OP){
+  else if(currNode->nodeType == UNARY_OP){
     char opType = currNode->fields.children.left->fields.strVal[0];
     generate(currNode->fields.children.right, outFile);
     switch(opType){
