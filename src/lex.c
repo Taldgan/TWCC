@@ -16,6 +16,8 @@ regex_t negation, bitwise_comp, logic_neg;
 
 regex_t add_op, mult_op, div_op;
 
+regex_t and_op, or_op, eq_to, lt_op, le_op, gt_op, ge_op;
+
 regex_t keywords[NUM_KEYWORDS];
 
 /**
@@ -41,6 +43,13 @@ void initRegexp(){
   flag += regcomp(&add_op, "+", 0);
   flag += regcomp(&mult_op, "*", 0);
   flag += regcomp(&div_op, "/", 0);
+  flag += regcomp(&and_op, "&&", 0);
+  flag += regcomp(&or_op, "||", 0);
+  flag += regcomp(&eq_to, "==", 0);
+  flag += regcomp(&lt_op, "<", 0);
+  flag += regcomp(&le_op, "<=", 0);
+  flag += regcomp(&gt_op, ">", 0);
+  flag += regcomp(&ge_op, ">=", 0);
   if(flag > 0){
     fprintf(stderr, "Failed to init 1 or more regular expressions.\n");
     exit(1);
@@ -61,6 +70,13 @@ void initRegexp(){
   keywords[12] = add_op;
   keywords[13] = mult_op;
   keywords[14] = div_op;
+  keywords[15] = and_op;
+  keywords[16] = or_op;
+  keywords[17] = eq_to;
+  keywords[18] = lt_op;
+  keywords[19] = le_op;
+  keywords[20] = gt_op;
+  keywords[21] = ge_op;
 }
 
 /**
@@ -148,7 +164,7 @@ token_t *popToken(tokenlist_t *tokens){
   if(tokens->head == tokens->tail){
     tokens->head = NULL;
     tokens->tail = NULL;
-      return popped;
+    return popped;
   }
   tokens->head = popped->next;
   popped->next = NULL;
