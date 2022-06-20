@@ -80,5 +80,43 @@ void generate(astnode_t *root, FILE *outFile){
     }
     return;
   }
+  else if(currNode->nodeType == BINARY_OP){
+    char opType = currNode->fields.children.middle->fields.strVal[0];
+    switch(opType){
+      case '+':
+        generate(currNode->fields.children.left, outFile);
+        fprintf(outFile, " push %%eax\n");
+        generate(currNode->fields.children.right, outFile);
+        fprintf(outFile, " pop %%ecx\n");
+        fprintf(outFile, " addl %%ecx, %%eax\n");
+        break;
+      case '-':
+        generate(currNode->fields.children.right, outFile);
+        fprintf(outFile, " push %%eax\n");
+        generate(currNode->fields.children.left, outFile);
+        fprintf(outFile, " pop %%ecx\n");
+        fprintf(outFile, " subl %%ecx, %%eax\n");
+        break;
+      case '*':
+        generate(currNode->fields.children.left, outFile);
+        fprintf(outFile, " push %%eax\n");
+        generate(currNode->fields.children.right, outFile);
+        fprintf(outFile, " pop %%ecx\n");
+        fprintf(outFile, " imul %%ecx, %%eax\n");
+        break;
+      case '/':
+        //Push e2
+        generate(currNode->fields.children.right, outFile);
+        fprintf(outFile, " push %%eax\n");
+        //e1 in EAX
+        generate(currNode->fields.children.left, outFile);
+        //Pop e2 into ECX
+        fprintf(outFile, " pop %%ecx\n");
+        fprintf(outFile, " cdq\n");
+        fprintf(outFile, " idivl %%ecx\n");
+        break;
+    }
+    return;
+  }
   fclose(outFile);
 }
