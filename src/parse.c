@@ -4,6 +4,186 @@
 #include <stdlib.h>
 
 /**
+ * parseLogicalAndExp(tokenlist_t *tokens)
+ * Parses an equality expression, returning an expression-type AST node
+ *
+ * <logical-and-expr> ::= <equality-expr> { "&&" <equality-expr> }
+ *
+ * param *tokens - the token list to parse the expression from
+ * return astnode_t* - returns an expression AST node
+ **/
+astnode_t *parseLogicalAndExp(tokenlist_t *tokens){
+  if(tokens == NULL){
+    fprintf(stderr, "Cannot parse expression, null token list.\n");
+    exit(1);
+  }
+  token_t *currToken = NULL;
+  astnode_t *exprNode = NULL;
+  exprNode = parseEqualityExp(tokens);
+  currToken = peek(tokens);
+  //Found first factor, now check for additional mult/division
+  while(currToken->type == AND_OP){
+    currToken = popToken(tokens);
+    char *opVal = currToken->value;
+    astnode_t *leftOperand = exprNode;
+    astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(operator == NULL){
+      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      exit(1);
+    }
+    operator->nodeType = DATA;
+    operator->fields.strVal = opVal;
+    astnode_t *rightOperand = parseEqualityExp(tokens);
+    exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(exprNode == NULL){
+      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      exit(1);
+    }
+    exprNode->nodeType = BINARY_OP;
+    exprNode->fields.children.left = leftOperand;
+    exprNode->fields.children.middle = operator;
+    exprNode->fields.children.right = rightOperand;
+    currToken = peek(tokens);
+  }
+  return exprNode;
+}
+
+/**
+ * parseEqualityExp(tokenlist_t *tokens)
+ * Parses an equality expression, returning an expression-type AST node
+ *
+ * <equality-expr> ::= <relational-expr> { ("!=" | "==" ) <relational-expr> }
+ *
+ * param *tokens - the token list to parse the expression from
+ * return astnode_t* - returns an expression AST node
+ **/
+astnode_t *parseEqualityExp(tokenlist_t *tokens){
+  if(tokens == NULL){
+    fprintf(stderr, "Cannot parse expression, null token list.\n");
+    exit(1);
+  }
+  token_t *currToken = NULL;
+  astnode_t *exprNode = NULL;
+  exprNode = parseRelationalExp(tokens);
+  currToken = peek(tokens);
+  //Found first factor, now check for additional mult/division
+  while(currToken->type == NEQ_TO || currToken->type == EQ_TO){
+    currToken = popToken(tokens);
+    char *opVal = currToken->value;
+    astnode_t *leftOperand = exprNode;
+    astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(operator == NULL){
+      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      exit(1);
+    }
+    operator->nodeType = DATA;
+    operator->fields.strVal = opVal;
+    astnode_t *rightOperand = parseRelationalExp(tokens);
+    exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(exprNode == NULL){
+      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      exit(1);
+    }
+    exprNode->nodeType = BINARY_OP;
+    exprNode->fields.children.left = leftOperand;
+    exprNode->fields.children.middle = operator;
+    exprNode->fields.children.right = rightOperand;
+    currToken = peek(tokens);
+  }
+  return exprNode;
+}
+
+/**
+ * parseRelationalExp(tokenlist_t *tokens)
+ * Parses an relational expression, returning an expression-type AST node
+ *
+ * <relational-expr> ::= <additive-expr> { ("<" | ">" | "<=" | ">=") <additive-expr> }
+ *
+ * param *tokens - the token list to parse the expression from
+ * return astnode_t* - returns an expression AST node
+ **/
+astnode_t *parseRelationalExp(tokenlist_t *tokens){
+  if(tokens == NULL){
+    fprintf(stderr, "Cannot parse expression, null token list.\n");
+    exit(1);
+  }
+  token_t *currToken = NULL;
+  astnode_t *exprNode = NULL;
+  exprNode = parseAdditiveExp(tokens);
+  currToken = peek(tokens);
+  //Found first factor, now check for additional mult/division
+  while(currToken->type == LT_OP || currToken->type == GT_OP || currToken->type == LE_OP || currToken->type == GE_OP){
+    currToken = popToken(tokens);
+    char *opVal = currToken->value;
+    astnode_t *leftOperand = exprNode;
+    astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(operator == NULL){
+      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      exit(1);
+    }
+    operator->nodeType = DATA;
+    operator->fields.strVal = opVal;
+    astnode_t *rightOperand = parseAdditiveExp(tokens);
+    exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(exprNode == NULL){
+      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      exit(1);
+    }
+    exprNode->nodeType = BINARY_OP;
+    exprNode->fields.children.left = leftOperand;
+    exprNode->fields.children.middle = operator;
+    exprNode->fields.children.right = rightOperand;
+    currToken = peek(tokens);
+  }
+  return exprNode;
+}
+
+/**
+ * parseAdditiveExp(tokenlist_t *tokens)
+ * Parses an additive expression, returning an expression-type AST node
+ *
+ * <additive-expr> ::= <term> { ( "+" | - ) <term> }
+ *
+ * param *tokens - the token list to parse the expression from
+ * return astnode_t* - returns an expression AST node
+ **/
+astnode_t *parseAdditiveExp(tokenlist_t *tokens){
+  if(tokens == NULL){
+    fprintf(stderr, "Cannot parse expression, null token list.\n");
+    exit(1);
+  }
+  token_t *currToken = NULL;
+  astnode_t *exprNode = NULL;
+  exprNode = parseTerm(tokens);
+  currToken = peek(tokens);
+  //Found first factor, now check for additional mult/division
+  while(currToken->type == ADD_OP || currToken->type == NEGATION){
+    currToken = popToken(tokens);
+    char *opVal = currToken->value;
+    astnode_t *leftOperand = exprNode;
+    astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(operator == NULL){
+      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      exit(1);
+    }
+    operator->nodeType = DATA;
+    operator->fields.strVal = opVal;
+    astnode_t *rightOperand = parseTerm(tokens);
+    exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(exprNode == NULL){
+      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      exit(1);
+    }
+    exprNode->nodeType = BINARY_OP;
+    exprNode->fields.children.left = leftOperand;
+    exprNode->fields.children.middle = operator;
+    exprNode->fields.children.right = rightOperand;
+    currToken = peek(tokens);
+  }
+  return exprNode;
+}
+
+/**
  * parseTerm(tokenlist_t *tokens)
  * Parse a term, returning a term-type AST node
  *
@@ -109,12 +289,12 @@ astnode_t *parseFactor(tokenlist_t *tokens){
 
 /**
  * parseExpression(tokenlist_t *tokens)
- * Parses an expression, returning a expression-type AST node
+ * Parses an expression, returning an expression-type AST node
  *
- * <expression> ::= <term> { ("+" | "-") <term> }
+ * <expression> ::= <logical-and-expr> { "||" < logical-and-expr> }
  *
  * param *tokens - the token list to parse the expression from
- * return astnode_t* - returns a expression AST node
+ * return astnode_t* - returns an expression AST node
  **/
 astnode_t *parseExpression(tokenlist_t *tokens){
   if(tokens == NULL){
@@ -123,10 +303,10 @@ astnode_t *parseExpression(tokenlist_t *tokens){
   }
   token_t *currToken = NULL;
   astnode_t *exprNode = NULL;
-  exprNode = parseTerm(tokens);
+  exprNode = parseLogicalAndExp(tokens);
   currToken = peek(tokens);
   //Found first factor, now check for additional mult/division
-  while(currToken->type == ADD_OP || currToken->type == NEGATION){
+  while(currToken->type == OR_OP){
     currToken = popToken(tokens);
     char *opVal = currToken->value;
     astnode_t *leftOperand = exprNode;
@@ -137,7 +317,7 @@ astnode_t *parseExpression(tokenlist_t *tokens){
     }
     operator->nodeType = DATA;
     operator->fields.strVal = opVal;
-    astnode_t *rightOperand = parseTerm(tokens);
+    astnode_t *rightOperand = parseLogicalAndExp(tokens);
     exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(exprNode == NULL){
       fprintf(stderr, "Failed to allocate space for binary operator term node.\n");

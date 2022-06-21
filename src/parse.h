@@ -23,6 +23,10 @@ typedef struct astnode_t {
 } astnode_t;
 
 //Parsing functions
+astnode_t *parseLogicalAndExp(tokenlist_t *tokens);
+astnode_t *parseEqualityExp(tokenlist_t *tokens);
+astnode_t *parseRelationalExp(tokenlist_t *tokens);
+astnode_t *parseAdditiveExp(tokenlist_t *tokens);
 astnode_t *parseTerm(tokenlist_t *tokens);
 astnode_t *parseFactor(tokenlist_t *tokens);
 astnode_t *parseExpression(tokenlist_t *tokens);
