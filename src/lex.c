@@ -20,6 +20,8 @@ regex_t and_op, or_op, eq_to, neq_to, lt_op, le_op, gt_op, ge_op;
 
 regex_t mod_op, bit_and, bit_or, bit_xor, shift_left, shift_right;
 
+regex_t assign;
+
 regex_t keywords[NUM_KEYWORDS];
 
 /**
@@ -59,6 +61,7 @@ void initRegexp(){
   flag += regcomp(&bit_xor, "\\^", 0);
   flag += regcomp(&shift_left, "<<", 0);
   flag += regcomp(&shift_right, ">>", 0);
+  flag += regcomp(&assign, "=", 0);
   if(flag > 0){
     fprintf(stderr, "Failed to init 1 or more regular expressions.\n");
     exit(1);
@@ -93,6 +96,7 @@ void initRegexp(){
   keywords[26] = bit_xor;
   keywords[27] = shift_left;
   keywords[28] = shift_right;
+  keywords[29] = assign;
 }
 
 /**
