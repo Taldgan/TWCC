@@ -23,6 +23,7 @@ typedef struct astnode_t {
 } astnode_t;
 
 //Parsing functions
+astnode_t *parseLogicalOrExp(tokenlist_t *tokens);
 astnode_t *parseBitXorExpr(tokenlist_t *tokens);
 astnode_t *parseBitOrExpr(tokenlist_t *tokens);
 astnode_t *parseBitAndExpr(tokenlist_t *tokens);

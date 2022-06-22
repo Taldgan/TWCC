@@ -8,9 +8,10 @@
  * Backus Naur Grammar:
  *
  * <program> ::= <function>
- * <function> ::= "int" <id> "(" ")" "{" <statement> "}"
- * <statement> ::= "return" <exp> ";" | "int" <id> "=" <exp> ";" | <exp>
- * <exp> ::= <logical-and-exp> { "||" <logical-and-exp> }
+ * <function> ::= "int" <id> "(" ")" "{" { <statement> } "}"
+ * <statement> ::= "return" <exp> ";" | "int" <id> "=" [ <exp> ] ";" | <exp> ";"
+ * <exp> ::= <id> "=" <exp> | <logical-or-exp>
+ * <logical-or-exp> ::= <logical-and-exp> { "&&" <logical-and-exp> }
  * <logical-and-exp> ::= <equality-exp> { "&&" <equality-exp> }
  * <equality-exp> ::= <relational-exp> { ("!=" | "==") <relational-exp> }
  * <relational-exp> ::= <bit-or-expr> { ("<" | ">" | "<=" | ">=") <bit-or-exp> }
@@ -23,6 +24,50 @@
  * <factor> ::= "(" <exp> ")" | <unary_op> <factor> | <int>
  * <unary_op> ::= "!" | "~" | "-"
  **/
+/**
+ * parseLogicalAndExp(tokenlist_t *tokens)
+ * Parses an equality expression, returning an expression-type AST node
+ *
+ * <logical-and-expr> ::= <equality-expr> { "&&" <equality-expr> }
+ *
+ * param *tokens - the token list to parse the expression from
+ * return astnode_t* - returns an expression AST node
+ **/
+astnode_t *parseLogicalOrExp(tokenlist_t *tokens){
+  if(tokens == NULL){
+    fprintf(stderr, "Cannot parse expression, null token list.\n");
+    exit(1);
+  }
+  token_t *currToken = NULL;
+  astnode_t *exprNode = NULL;
+  exprNode = parseLogicalAndExp(tokens);
+  currToken = peek(tokens);
+  //Found first factor, now check for additional mult/division
+  while(currToken->type == AND_OP){
+    currToken = popToken(tokens);
+    char *opVal = currToken->value;
+    astnode_t *leftOperand = exprNode;
+    astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(operator == NULL){
+      fprintf(stderr, "Error on line %d: Failed to allocate space for operator node in term.\n", currToken->lineNum);
+      exit(1);
+    }
+    operator->nodeType = DATA;
+    operator->fields.strVal = opVal;
+    astnode_t *rightOperand = parseLogicalAndExp(tokens);
+    exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(exprNode == NULL){
+      fprintf(stderr, "Error on line %d: Failed to allocate space for binary operator term node.\n", currToken->lineNum);
+      exit(1);
+    }
+    exprNode->nodeType = BINARY_OP;
+    exprNode->fields.children.left = leftOperand;
+    exprNode->fields.children.middle = operator;
+    exprNode->fields.children.right = rightOperand;
+    currToken = peek(tokens);
+  }
+  return exprNode;
+}
 
 /**
  * parseBitOrExpr(tokenlist_t *tokens)
@@ -504,7 +549,7 @@ astnode_t *parseExpression(tokenlist_t *tokens){
   }
   token_t *currToken = NULL;
   astnode_t *exprNode = NULL;
-  exprNode = parseLogicalAndExp(tokens);
+  exprNode = parseLogicalOrExp(tokens);
   currToken = peek(tokens);
   //Found first factor, now check for additional mult/division
   while(currToken->type == OR_OP){
@@ -518,7 +563,7 @@ astnode_t *parseExpression(tokenlist_t *tokens){
     }
     operator->nodeType = DATA;
     operator->fields.strVal = opVal;
-    astnode_t *rightOperand = parseLogicalAndExp(tokens);
+    astnode_t *rightOperand = parseLogicalOrExp(tokens);
     exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(exprNode == NULL){
       fprintf(stderr, "Error on line %d: Failed to allocate space for binary operator term node.\n", currToken->lineNum);
