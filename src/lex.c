@@ -3,8 +3,8 @@
 #include <string.h>
 #include <regex.h>
 #include <ctype.h>
-#include "lex.h"
 
+#include "lex.h"
 //Token Regex Types
 //Single char keywords
 regex_t openBrace, closeBrace, openParen, closeParen, semicolon;
@@ -100,14 +100,15 @@ void initRegexp(){
 }
 
 /**
- * *createToken(char *value, TOKEN_TYPE type)
+ * *createToken(char *value, TOKEN_TYPE type, int lineNum)
  * Creates a new token data type, and returns its pointer.
  *
  * param value - String containing the value of the token ('main'/'int'/'16', etc)
  * param type - Enum of the type of token (for '16, type would be INT_LITERAL, value of 5)
+ * param lineNum - the number of the line the token was found on, for use in parsing.
  * return token_t* - returns a pointer to the newly created token
  **/
-token_t *createToken(char *value, TOKEN_TYPE type){
+token_t *createToken(char *value, TOKEN_TYPE type, int lineNum){
   if(value == NULL){
     fprintf(stderr, "Attempted to create token with null value\n");
     exit(1);
@@ -120,6 +121,7 @@ token_t *createToken(char *value, TOKEN_TYPE type){
   newToken->value = value;
   newToken->type = type;
   newToken->next = NULL;
+  newToken->lineNum = lineNum;
   return newToken;
 }
 
@@ -290,7 +292,7 @@ tokenlist_t *lex(){
   tokens = initTokenlist();
   //Lex the source file using regex
   char *line = 0;
-  int lineNum = 0;
+  int lineNum = 1;
 
   //printf("── lexing %s ──\n\n", sourcePath);
   line = strtok(fileBuf, "\n");
@@ -326,7 +328,7 @@ tokenlist_t *lex(){
       //printf("\tToken found: ");
       //printSubstr(line, minStart, minEnd);
       //puts("");
-      token_t *newToken = createToken(strndup(&line[minStart], minEnd-minStart), tokType);
+      token_t *newToken = createToken(strndup(&line[minStart], minEnd-minStart), tokType, lineNum);
       appendToken(tokens, newToken);
       tokens->numTokens++;
       //printf("\t\tAdded token: %s\n", newToken->value);

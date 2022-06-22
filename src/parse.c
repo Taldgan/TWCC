@@ -9,7 +9,7 @@
  *
  * <program> ::= <function>
  * <function> ::= "int" <id> "(" ")" "{" <statement> "}"
- * <statement> ::= "return" <exp> ";" | "int" <id> "=" <exp> ";"
+ * <statement> ::= "return" <exp> ";" | "int" <id> "=" <exp> ";" | <exp>
  * <exp> ::= <logical-and-exp> { "||" <logical-and-exp> }
  * <logical-and-exp> ::= <equality-exp> { "&&" <equality-exp> }
  * <equality-exp> ::= <relational-exp> { ("!=" | "==") <relational-exp> }
@@ -49,7 +49,7 @@ astnode_t *parseBitXorExpr(tokenlist_t *tokens){
     astnode_t *leftOperand = exprNode;
     astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(operator == NULL){
-      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      fprintf(stderr, "Error on Line %d: Failed to allocate space for operator node in term.\n", currToken->lineNum);
       exit(1);
     }
     operator->nodeType = DATA;
@@ -57,7 +57,7 @@ astnode_t *parseBitXorExpr(tokenlist_t *tokens){
     astnode_t *rightOperand = parseBitAndExpr(tokens);
     exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(exprNode == NULL){
-      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for binary operator term node.\n", currToken->lineNum);
       exit(1);
     }
     exprNode->nodeType = BINARY_OP;
@@ -94,7 +94,7 @@ astnode_t *parseBitOrExpr(tokenlist_t *tokens){
     astnode_t *leftOperand = exprNode;
     astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(operator == NULL){
-      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for operator node in term.\n", currToken->lineNum);
       exit(1);
     }
     operator->nodeType = DATA;
@@ -102,7 +102,7 @@ astnode_t *parseBitOrExpr(tokenlist_t *tokens){
     astnode_t *rightOperand = parseBitXorExpr(tokens);
     exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(exprNode == NULL){
-      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for binary operator term node.\n", currToken->lineNum);
       exit(1);
     }
     exprNode->nodeType = BINARY_OP;
@@ -139,7 +139,7 @@ astnode_t *parseBitAndExpr(tokenlist_t *tokens){
     astnode_t *leftOperand = exprNode;
     astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(operator == NULL){
-      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for operator node in term.\n", currToken->lineNum);
       exit(1);
     }
     operator->nodeType = DATA;
@@ -147,7 +147,7 @@ astnode_t *parseBitAndExpr(tokenlist_t *tokens){
     astnode_t *rightOperand = parseShiftExpr(tokens);
     exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(exprNode == NULL){
-      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for binary operator term node.\n", currToken->lineNum);
       exit(1);
     }
     exprNode->nodeType = BINARY_OP;
@@ -184,7 +184,7 @@ astnode_t *parseLogicalAndExp(tokenlist_t *tokens){
     astnode_t *leftOperand = exprNode;
     astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(operator == NULL){
-      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for operator node in term.\n", currToken->lineNum);
       exit(1);
     }
     operator->nodeType = DATA;
@@ -192,7 +192,7 @@ astnode_t *parseLogicalAndExp(tokenlist_t *tokens){
     astnode_t *rightOperand = parseBitOrExpr(tokens);
     exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(exprNode == NULL){
-      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for binary operator term node.\n", currToken->lineNum);
       exit(1);
     }
     exprNode->nodeType = BINARY_OP;
@@ -229,7 +229,7 @@ astnode_t *parseEqualityExp(tokenlist_t *tokens){
     astnode_t *leftOperand = exprNode;
     astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(operator == NULL){
-      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for operator node in term.\n", currToken->lineNum);
       exit(1);
     }
     operator->nodeType = DATA;
@@ -237,7 +237,7 @@ astnode_t *parseEqualityExp(tokenlist_t *tokens){
     astnode_t *rightOperand = parseRelationalExp(tokens);
     exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(exprNode == NULL){
-      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for binary operator term node.\n", currToken->lineNum);
       exit(1);
     }
     exprNode->nodeType = BINARY_OP;
@@ -274,7 +274,7 @@ astnode_t *parseShiftExpr(tokenlist_t *tokens){
     astnode_t *leftOperand = exprNode;
     astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(operator == NULL){
-      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for operator node in term.\n", currToken->lineNum);
       exit(1);
     }
     operator->nodeType = DATA;
@@ -282,7 +282,7 @@ astnode_t *parseShiftExpr(tokenlist_t *tokens){
     astnode_t *rightOperand = parseAdditiveExp(tokens);
     exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(exprNode == NULL){
-      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for binary operator term node.\n", currToken->lineNum);
       exit(1);
     }
     exprNode->nodeType = BINARY_OP;
@@ -319,7 +319,7 @@ astnode_t *parseRelationalExp(tokenlist_t *tokens){
     astnode_t *leftOperand = exprNode;
     astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(operator == NULL){
-      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for operator node in term.\n", currToken->lineNum);
       exit(1);
     }
     operator->nodeType = DATA;
@@ -327,7 +327,7 @@ astnode_t *parseRelationalExp(tokenlist_t *tokens){
     astnode_t *rightOperand = parseShiftExpr(tokens);
     exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(exprNode == NULL){
-      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for binary operator term node.\n", currToken->lineNum);
       exit(1);
     }
     exprNode->nodeType = BINARY_OP;
@@ -364,7 +364,7 @@ astnode_t *parseAdditiveExp(tokenlist_t *tokens){
     astnode_t *leftOperand = exprNode;
     astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(operator == NULL){
-      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for operator node in term.\n", currToken->lineNum);
       exit(1);
     }
     operator->nodeType = DATA;
@@ -372,7 +372,7 @@ astnode_t *parseAdditiveExp(tokenlist_t *tokens){
     astnode_t *rightOperand = parseTerm(tokens);
     exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(exprNode == NULL){
-      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for binary operator term node.\n", currToken->lineNum);
       exit(1);
     }
     exprNode->nodeType = BINARY_OP;
@@ -408,7 +408,7 @@ astnode_t *parseTerm(tokenlist_t *tokens){
     astnode_t *leftOperand = termNode;
     astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(operator == NULL){
-      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for operator node in term.\n", currToken->lineNum);
       exit(1);
     }
     operator->nodeType = DATA;
@@ -416,7 +416,7 @@ astnode_t *parseTerm(tokenlist_t *tokens){
     astnode_t *rightOperand = parseFactor(tokens);
     termNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(termNode == NULL){
-      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for binary operator term node.\n", currToken->lineNum);
       exit(1);
     }
     termNode->nodeType = BINARY_OP;
@@ -445,14 +445,14 @@ astnode_t *parseFactor(tokenlist_t *tokens){
   astnode_t *factNode = NULL;
   currToken = popToken(tokens);
   if(currToken == NULL){
-    fprintf(stderr, "Empty factor, invalid format.\n");
+    fprintf(stderr, "Error on line %d: Empty factor, invalid format.\n", currToken->lineNum);
     exit(1);
   }
   if(currToken->type == OPEN_PAREN){
     factNode = parseExpression(tokens);
     currToken = popToken(tokens);
     if(currToken->type != CLOSED_PAREN){
-      fprintf(stderr, "Missing closed parenthese in factor.\n");
+      fprintf(stderr, "Error on line %d: Missing closed parenthese in factor.\n", currToken->lineNum);
       exit(1);
     }
     return factNode;
@@ -460,13 +460,13 @@ astnode_t *parseFactor(tokenlist_t *tokens){
   //Need to malloc factNode for remaining cases
   factNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
   if(factNode == NULL){
-    fprintf(stderr, "Failed to allocate space for int factor node.\n");
+    fprintf(stderr, "Error on line %d: Failed to allocate space for int factor node.\n", currToken->lineNum);
     exit(1);
   }
   else if(currToken->type == NEGATION || currToken->type == BITWISE_COMP || currToken->type == LOGIC_NEG){
     astnode_t *unOp = (astnode_t*) malloc(sizeof(astnode_t)*1);
     if(unOp == NULL){
-      fprintf(stderr, "Failed to allocate space for unary operator node.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for unary operator node.\n", currToken->lineNum);
       exit(1);
     }
     unOp->fields.strVal = currToken->value;
@@ -482,7 +482,7 @@ astnode_t *parseFactor(tokenlist_t *tokens){
     return factNode;
   }
   else{
-    fprintf(stderr, "Invalid factor.\n");
+    fprintf(stderr, "Error on line %d: Invalid factor.\n", currToken->lineNum);
     exit(1);
   }
   return NULL;
@@ -513,7 +513,7 @@ astnode_t *parseExpression(tokenlist_t *tokens){
     astnode_t *leftOperand = exprNode;
     astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(operator == NULL){
-      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for operator node in term.\n", currToken->lineNum);
       exit(1);
     }
     operator->nodeType = DATA;
@@ -521,7 +521,7 @@ astnode_t *parseExpression(tokenlist_t *tokens){
     astnode_t *rightOperand = parseLogicalAndExp(tokens);
     exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(exprNode == NULL){
-      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      fprintf(stderr, "Error on line %d: Failed to allocate space for binary operator term node.\n", currToken->lineNum);
       exit(1);
     }
     exprNode->nodeType = BINARY_OP;
@@ -551,7 +551,7 @@ astnode_t *parseStatement(tokenlist_t *tokens){
   }
   currToken = popToken(tokens);
   if(currToken == NULL || currToken->type != RET_KEYW){
-    fprintf(stderr, "Statement did not begin with return.\n");
+    fprintf(stderr, "Error on line %d: Statement did not begin with return.\n", currToken->lineNum);
     exit(1);
   }
   statementNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
@@ -559,7 +559,7 @@ astnode_t *parseStatement(tokenlist_t *tokens){
   statementNode->fields.children.left = parseExpression(tokens);
   currToken = popToken(tokens);
   if(currToken == NULL || currToken->type != SEMICOLON){
-    fprintf(stderr, "Statement did not end with semicolon.\n");
+    fprintf(stderr, "Error on line %d: Statement did not end with semicolon.\n", currToken->lineNum);
     exit(1);
   }
   return statementNode;
@@ -578,12 +578,12 @@ astnode_t *parseFunction(tokenlist_t *tokens){
   astnode_t *funcNode = NULL;
   char *funcName = NULL;
   if(currToken == NULL || currToken->type != INT_KEYW){
-    fprintf(stderr, "Function did not begin with int keyword.\n");
+    fprintf(stderr, "Error on line %d: Function did not begin with int keyword.\n", currToken->lineNum);
     exit(1);
   }
   currToken = popToken(tokens);
   if(currToken == NULL || currToken->type != IDENTIFIER){
-    fprintf(stderr, "Identifier did not follow int keyword.\n");
+    fprintf(stderr, "Error on line %d: Identifier did not follow int keyword.\n", currToken->lineNum);
     exit(1);
   }
   funcName = currToken->value;
@@ -592,31 +592,31 @@ astnode_t *parseFunction(tokenlist_t *tokens){
   funcNode->fields.children.left = (astnode_t *) malloc(sizeof(astnode_t)*1);
   funcNode->fields.children.left->nodeType = DATA;
   if(funcNode->fields.children.left == NULL){
-    fprintf(stderr, "Failed to allocate space for function name node.\n");
+    fprintf(stderr, "Error on line %d: Failed to allocate space for function name node.\n", currToken->lineNum);
     exit(1);
   }
   //Function left child node will contain value of function's name, right func body
   funcNode->fields.children.left->fields.strVal = funcName;
   currToken = popToken(tokens);
   if(currToken == NULL || currToken->type != OPEN_PAREN){
-    fprintf(stderr, "Open parenthese did not follow identifier.\n");
+    fprintf(stderr, "Error on line %d: Open parenthese did not follow identifier.\n", currToken->lineNum);
     exit(1);
   }
   currToken = popToken(tokens);
   if(currToken == NULL || currToken->type != CLOSED_PAREN){
-    fprintf(stderr, "Closed parenthese did not follow open parenthese.\n");
+    fprintf(stderr, "Error on line %d: Closed parenthese did not follow open parenthese.\n", currToken->lineNum);
     exit(1);
   }
   currToken = popToken(tokens);
   if(currToken == NULL || currToken->type != OPEN_BRACE){
-    fprintf(stderr, "Open bracket did not follow closed parenthese.\n");
+    fprintf(stderr, "Error on line %d: Open bracket did not follow closed parenthese.\n", currToken->lineNum);
     exit(1);
   }
   //Create func body
   funcNode->fields.children.right = parseStatement(tokens);
   currToken = popToken(tokens);
   if(currToken == NULL || currToken->type != CLOSED_BRACE){
-    fprintf(stderr, "Closed bracket missing for function %s.\n", funcName);
+    fprintf(stderr, "Error on line %d: Closed bracket missing for function %s.\n", currToken->lineNum, funcName);
     exit(1);
   }
   return funcNode;

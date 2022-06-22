@@ -18,6 +18,7 @@ typedef enum TOKEN_TYPE {OPEN_BRACE, CLOSED_BRACE, OPEN_PAREN, CLOSED_PAREN, SEM
 typedef struct token_t {
   char *value;
   TOKEN_TYPE type;
+  int lineNum;
   struct token_t *next;
 } token_t;
 
@@ -31,7 +32,7 @@ typedef struct tokenlist_t {
 
 //Regex functions
 void initRegexp();
-token_t *createToken(char *value, TOKEN_TYPE type);
+token_t *createToken(char *value, TOKEN_TYPE type, int lineNum);
 void freeRegs();
 
 
