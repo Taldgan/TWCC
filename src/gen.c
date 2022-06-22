@@ -5,6 +5,20 @@
 #include <string.h>
 
 
+unsigned int labelCounter = 0;
+
+char *generateLabel(){
+  //over maximum int length/size...
+  char *label = malloc(sizeof(char)*12);
+  if(label == NULL){
+    fprintf(stderr, "Failed to allocate space for new label.\n");
+    exit(1);
+  }
+  snprintf(label, 11, "_%d", labelCounter);
+  labelCounter++;
+  return label;
+}
+
 FILE *getOutFile(){
   int i;
   int pathLen = strnlen(sourcePath, LEN_PATH)-1;
@@ -84,40 +98,122 @@ void generate(astnode_t *root, FILE *outFile){
   }
   //Binary op statement
   else if(currNode->nodeType == BINARY_OP){
-    char opType = currNode->fields.children.middle->fields.strVal[0];
-    switch(opType){
-      case '+':
+    char *opType = currNode->fields.children.middle->fields.strVal;
+    if(strncmp(opType, "+", 5) == 0){
         generate(currNode->fields.children.left, outFile);
         fprintf(outFile, " push %%eax\n");
         generate(currNode->fields.children.right, outFile);
         fprintf(outFile, " pop %%ecx\n");
         fprintf(outFile, " addl %%ecx, %%eax\n");
-        break;
-      case '-':
+    }
+    else if(strncmp(opType, "-", 5) == 0){
         generate(currNode->fields.children.right, outFile);
         fprintf(outFile, " push %%eax\n");
         generate(currNode->fields.children.left, outFile);
         fprintf(outFile, " pop %%ecx\n");
         fprintf(outFile, " subl %%ecx, %%eax\n");
-        break;
-      case '*':
-        generate(currNode->fields.children.left, outFile);
-        fprintf(outFile, " push %%eax\n");
-        generate(currNode->fields.children.right, outFile);
-        fprintf(outFile, " pop %%ecx\n");
-        fprintf(outFile, " imul %%ecx, %%eax\n");
-        break;
-      case '/':
-        //Push e2
-        generate(currNode->fields.children.right, outFile);
-        fprintf(outFile, " push %%eax\n");
-        //e1 in EAX
-        generate(currNode->fields.children.left, outFile);
-        //Pop e2 into ECX
-        fprintf(outFile, " pop %%ecx\n");
-        fprintf(outFile, " cdq\n");
-        fprintf(outFile, " idivl %%ecx\n");
-        break;
+    }
+    else if(strncmp(opType, "*", 5) == 0){
+      generate(currNode->fields.children.left, outFile);
+      fprintf(outFile, " push %%eax\n");
+      generate(currNode->fields.children.right, outFile);
+      fprintf(outFile, " pop %%ecx\n");
+      fprintf(outFile, " imul %%ecx, %%eax\n");
+    }
+    else if(strncmp(opType, "/", 5) == 0){
+      //Push e2
+      generate(currNode->fields.children.right, outFile);
+      fprintf(outFile, " push %%eax\n");
+      //e1 in EAX
+      generate(currNode->fields.children.left, outFile);
+      //Pop e2 into ECX
+      fprintf(outFile, " pop %%ecx\n");
+      fprintf(outFile, " cdq\n");
+      fprintf(outFile, " idivl %%ecx\n");
+    }
+    //Binary conditional operators
+    else if(strncmp(opType, "<", 5) == 0){
+      generate(currNode->fields.children.left, outFile);
+      fprintf(outFile, " push %%eax\n");
+      generate(currNode->fields.children.right, outFile);
+      fprintf(outFile, " pop %%ecx\n");
+      fprintf(outFile, " cmpl %%eax, %%ecx\n");
+      fprintf(outFile, " movl $0, %%eax\n");
+      fprintf(outFile, " setl %%al\n");
+    }
+    else if(strncmp(opType, ">", 5) == 0){
+      generate(currNode->fields.children.left, outFile);
+      fprintf(outFile, " push %%eax\n");
+      generate(currNode->fields.children.right, outFile);
+      fprintf(outFile, " pop %%ecx\n");
+      fprintf(outFile, " cmpl %%eax, %%ecx\n");
+      fprintf(outFile, " movl $0, %%eax\n");
+      fprintf(outFile, " setg %%al\n");
+    }
+    else if(strncmp(opType, "<=", 5) == 0){
+      generate(currNode->fields.children.left, outFile);
+      fprintf(outFile, " push %%eax\n");
+      generate(currNode->fields.children.right, outFile);
+      fprintf(outFile, " pop %%ecx\n");
+      fprintf(outFile, " cmpl %%eax, %%ecx\n");
+      fprintf(outFile, " movl $0, %%eax\n");
+      fprintf(outFile, " setle %%al\n");
+    }
+    else if(strncmp(opType, ">=", 5) == 0){
+      generate(currNode->fields.children.left, outFile);
+      fprintf(outFile, " push %%eax\n");
+      generate(currNode->fields.children.right, outFile);
+      fprintf(outFile, " pop %%ecx\n");
+      fprintf(outFile, " cmpl %%eax, %%ecx\n");
+      fprintf(outFile, " movl $0, %%eax\n");
+      fprintf(outFile, " setge %%al\n");
+    }
+    else if(strncmp(opType, "!=", 5) == 0){
+      generate(currNode->fields.children.left, outFile);
+      fprintf(outFile, " push %%eax\n");
+      generate(currNode->fields.children.right, outFile);
+      fprintf(outFile, " pop %%ecx\n");
+      fprintf(outFile, " cmpl %%eax, %%ecx\n");
+      fprintf(outFile, " movl $0, %%eax\n");
+      fprintf(outFile, " setne %%al\n");
+    }
+    else if(strncmp(opType, "==", 5) == 0){
+      generate(currNode->fields.children.left, outFile);
+      fprintf(outFile, " push %%eax\n");
+      generate(currNode->fields.children.right, outFile);
+      fprintf(outFile, " pop %%ecx\n");
+      fprintf(outFile, " cmpl %%eax, %%ecx\n");
+      fprintf(outFile, " movl $0, %%eax\n");
+      fprintf(outFile, " sete %%al\n");
+    }
+    else if(strncmp(opType, "&&", 5) == 0){
+      char *clauseLabel = generateLabel();
+      char *endLabel = generateLabel();
+      generate(currNode->fields.children.left, outFile);
+      fprintf(outFile, " cmpl $0, %%eax\n");
+      fprintf(outFile, " jne %s\n", clauseLabel);
+      fprintf(outFile, " jmp %s\n", endLabel);
+      fprintf(outFile, "%s:\n", clauseLabel);
+      generate(currNode->fields.children.right, outFile);
+      fprintf(outFile, " cmpl $0, %%eax\n");
+      fprintf(outFile, " movl $0, %%eax\n");
+      fprintf(outFile, " setne %%al\n");
+      fprintf(outFile, "%s:\n", endLabel);
+    }
+    else if(strncmp(opType, "||", 5) == 0){
+      char *clauseLabel = generateLabel();
+      char *endLabel = generateLabel();
+      generate(currNode->fields.children.left, outFile);
+      fprintf(outFile, " cmpl $0, %%eax\n");
+      fprintf(outFile, " je %s\n", clauseLabel);
+      fprintf(outFile, " movl $1, %%eax\n");
+      fprintf(outFile, " jmp %s\n", endLabel);
+      fprintf(outFile, "%s:\n", clauseLabel);
+      generate(currNode->fields.children.right, outFile);
+      fprintf(outFile, " cmpl $0, %%eax\n");
+      fprintf(outFile, " movl $0, %%eax\n");
+      fprintf(outFile, " setne %%al\n");
+      fprintf(outFile, "%s:\n", endLabel);
     }
     return;
   }
