@@ -3,6 +3,162 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+/**
+ * Backus Naur Grammar:
+ *
+ * <program> ::= <function>
+ * <function> ::= "int" <id> "(" ")" "{" <statement> "}"
+ * <statement> ::= "return" <exp> ";"
+ * <exp> ::= <logical-and-exp> { "||" <logical-and-exp> }
+ * <logical-and-exp> ::= <equality-exp> { "&&" <equality-exp> }
+ * <equality-exp> ::= <relational-exp> { ("!=" | "==") <relational-exp> }
+ * <relational-exp> ::= <bit-or-expr> { ("<" | ">" | "<=" | ">=") <bit-or-exp> }
+ * <bit-or-expr> ::= <bit-xor-expr> { "^" <bit-xor-expr }
+ * <bit-xor-expr> ::= <bit-and-expr> { "|" <bit-and-expr }
+ * <bit-and-expr> ::= <shift-expr> { "&" <shift-expr }
+ * <shift-expr> ::= <additive-expr> { ("<<" | ">>") <additive-expr}
+ * <additive-exp> ::= <term> { ("+" | "-") <term> }
+ * <term> ::= <factor> { ("*" | "/" | "%") <factor> }
+ * <factor> ::= "(" <exp> ")" | <unary_op> <factor> | <int>
+ * <unary_op> ::= "!" | "~" | "-"
+ **/
+
+/**
+ * parseBitOrExpr(tokenlist_t *tokens)
+ * Parses a bitwise-xor expression, returning an expression-type AST node
+ *
+ * <bit-or-expr> ::= <bit-xor-expr> { "^" <bit-xor-expr }
+ *
+ * param *tokens - the token list to parse the expression from
+ * return astnode_t* - returns an expression AST node
+ **/
+astnode_t *parseBitXorExpr(tokenlist_t *tokens){
+  if(tokens == NULL){
+    fprintf(stderr, "Cannot parse expression, null token list.\n");
+    exit(1);
+  }
+  token_t *currToken = NULL;
+  astnode_t *exprNode = NULL;
+  exprNode = parseBitAndExpr(tokens);
+  currToken = peek(tokens);
+  //Found first factor, now check for additional mult/division
+  while(currToken->type == BIT_XOR){
+    currToken = popToken(tokens);
+    char *opVal = currToken->value;
+    astnode_t *leftOperand = exprNode;
+    astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(operator == NULL){
+      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      exit(1);
+    }
+    operator->nodeType = DATA;
+    operator->fields.strVal = opVal;
+    astnode_t *rightOperand = parseBitAndExpr(tokens);
+    exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(exprNode == NULL){
+      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      exit(1);
+    }
+    exprNode->nodeType = BINARY_OP;
+    exprNode->fields.children.left = leftOperand;
+    exprNode->fields.children.middle = operator;
+    exprNode->fields.children.right = rightOperand;
+    currToken = peek(tokens);
+  }
+  return exprNode;
+}
+
+/**
+ * parseBitOrExpr(tokenlist_t *tokens)
+ * Parses a bitwise-or expression, returning an expression-type AST node
+ *
+ * <bit-or-expr> ::= <bit-xor-expr> { "^" <bit-xor-expr }
+ *
+ * param *tokens - the token list to parse the expression from
+ * return astnode_t* - returns an expression AST node
+ **/
+astnode_t *parseBitOrExpr(tokenlist_t *tokens){
+  if(tokens == NULL){
+    fprintf(stderr, "Cannot parse expression, null token list.\n");
+    exit(1);
+  }
+  token_t *currToken = NULL;
+  astnode_t *exprNode = NULL;
+  exprNode = parseBitXorExpr(tokens);
+  currToken = peek(tokens);
+  //Found first factor, now check for additional mult/division
+  while(currToken->type == BIT_OR){
+    currToken = popToken(tokens);
+    char *opVal = currToken->value;
+    astnode_t *leftOperand = exprNode;
+    astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(operator == NULL){
+      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      exit(1);
+    }
+    operator->nodeType = DATA;
+    operator->fields.strVal = opVal;
+    astnode_t *rightOperand = parseBitXorExpr(tokens);
+    exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(exprNode == NULL){
+      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      exit(1);
+    }
+    exprNode->nodeType = BINARY_OP;
+    exprNode->fields.children.left = leftOperand;
+    exprNode->fields.children.middle = operator;
+    exprNode->fields.children.right = rightOperand;
+    currToken = peek(tokens);
+  }
+  return exprNode;
+}
+
+/**
+ * parseBitAndExpr(tokenlist_t *tokens)
+ * Parses a bitwise-and expression, returning an expression-type AST node
+ *
+ * <bit-and-expr> ::= <shift-expr> { "&" <shift-expr }
+ *
+ * param *tokens - the token list to parse the expression from
+ * return astnode_t* - returns an expression AST node
+ **/
+astnode_t *parseBitAndExpr(tokenlist_t *tokens){
+  if(tokens == NULL){
+    fprintf(stderr, "Cannot parse expression, null token list.\n");
+    exit(1);
+  }
+  token_t *currToken = NULL;
+  astnode_t *exprNode = NULL;
+  exprNode = parseShiftExpr(tokens);
+  currToken = peek(tokens);
+  //Found first factor, now check for additional mult/division
+  while(currToken->type == BIT_AND){
+    currToken = popToken(tokens);
+    char *opVal = currToken->value;
+    astnode_t *leftOperand = exprNode;
+    astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(operator == NULL){
+      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      exit(1);
+    }
+    operator->nodeType = DATA;
+    operator->fields.strVal = opVal;
+    astnode_t *rightOperand = parseShiftExpr(tokens);
+    exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(exprNode == NULL){
+      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      exit(1);
+    }
+    exprNode->nodeType = BINARY_OP;
+    exprNode->fields.children.left = leftOperand;
+    exprNode->fields.children.middle = operator;
+    exprNode->fields.children.right = rightOperand;
+    currToken = peek(tokens);
+  }
+  return exprNode;
+}
+
 /**
  * parseLogicalAndExp(tokenlist_t *tokens)
  * Parses an equality expression, returning an expression-type AST node
@@ -94,15 +250,15 @@ astnode_t *parseEqualityExp(tokenlist_t *tokens){
 }
 
 /**
- * parseRelationalExp(tokenlist_t *tokens)
- * Parses an relational expression, returning an expression-type AST node
+ * parseShiftExpr(tokenlist_t *tokens)
+ * Parses a bit-shift expression, returning an expression-type AST node
  *
  * <relational-expr> ::= <additive-expr> { ("<" | ">" | "<=" | ">=") <additive-expr> }
  *
  * param *tokens - the token list to parse the expression from
  * return astnode_t* - returns an expression AST node
  **/
-astnode_t *parseRelationalExp(tokenlist_t *tokens){
+astnode_t *parseShiftExpr(tokenlist_t *tokens){
   if(tokens == NULL){
     fprintf(stderr, "Cannot parse expression, null token list.\n");
     exit(1);
@@ -124,6 +280,51 @@ astnode_t *parseRelationalExp(tokenlist_t *tokens){
     operator->nodeType = DATA;
     operator->fields.strVal = opVal;
     astnode_t *rightOperand = parseAdditiveExp(tokens);
+    exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(exprNode == NULL){
+      fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
+      exit(1);
+    }
+    exprNode->nodeType = BINARY_OP;
+    exprNode->fields.children.left = leftOperand;
+    exprNode->fields.children.middle = operator;
+    exprNode->fields.children.right = rightOperand;
+    currToken = peek(tokens);
+  }
+  return exprNode;
+}
+
+/**
+ * parseRelationalExp(tokenlist_t *tokens)
+ * Parses a relational expression, returning an expression-type AST node
+ *
+ * <relational-expr> ::= <additive-expr> { ("<" | ">" | "<=" | ">=") <additive-expr> }
+ *
+ * param *tokens - the token list to parse the expression from
+ * return astnode_t* - returns an expression AST node
+ **/
+astnode_t *parseRelationalExp(tokenlist_t *tokens){
+  if(tokens == NULL){
+    fprintf(stderr, "Cannot parse expression, null token list.\n");
+    exit(1);
+  }
+  token_t *currToken = NULL;
+  astnode_t *exprNode = NULL;
+  exprNode = parseShiftExpr(tokens);
+  currToken = peek(tokens);
+  //Found first factor, now check for additional mult/division
+  while(currToken->type == LT_OP || currToken->type == GT_OP || currToken->type == LE_OP || currToken->type == GE_OP){
+    currToken = popToken(tokens);
+    char *opVal = currToken->value;
+    astnode_t *leftOperand = exprNode;
+    astnode_t *operator = (astnode_t *) malloc(sizeof(astnode_t)*1);
+    if(operator == NULL){
+      fprintf(stderr, "Failed to allocate space for operator node in term.\n");
+      exit(1);
+    }
+    operator->nodeType = DATA;
+    operator->fields.strVal = opVal;
+    astnode_t *rightOperand = parseShiftExpr(tokens);
     exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(exprNode == NULL){
       fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
@@ -187,7 +388,7 @@ astnode_t *parseAdditiveExp(tokenlist_t *tokens){
  * parseTerm(tokenlist_t *tokens)
  * Parse a term, returning a term-type AST node
  *
- * <term> ::= <factor> { ("*" | "/") <factor> }
+ * <term> ::= <factor> { ("*" | "/" | "%") <factor> }
  *
  * return astnode_t* - returns the created AST node
  **/
@@ -201,7 +402,7 @@ astnode_t *parseTerm(tokenlist_t *tokens){
   termNode = parseFactor(tokens);
   currToken = peek(tokens);
   //Found first factor, now check for additional mult/division
-  while(currToken->type == MULT_OP || currToken->type == DIV_OP){
+  while(currToken->type == MULT_OP || currToken->type == DIV_OP || currToken->type == MOD_OP){
     currToken = popToken(tokens);
     char *opVal = currToken->value;
     astnode_t *leftOperand = termNode;
