@@ -131,6 +131,19 @@ void generate(astnode_t *root, FILE *outFile){
       fprintf(outFile, " cdq\n");
       fprintf(outFile, " idivl %%ecx\n");
     }
+    else if(strncmp(opType, "%", 5) == 0){
+      //Push e2
+      generate(currNode->fields.children.right, outFile);
+      fprintf(outFile, " push %%eax\n");
+      //e1 in EAX
+      generate(currNode->fields.children.left, outFile);
+      //Pop e2 into ECX
+      fprintf(outFile, " pop %%ecx\n");
+      fprintf(outFile, " cdq\n");
+      fprintf(outFile, " idivl %%ecx\n");
+      //Move remainder into eax
+      fprintf(outFile, " movl %%edx, %%eax\n");
+    }
     //Binary conditional operators
     else if(strncmp(opType, "<", 5) == 0){
       generate(currNode->fields.children.left, outFile);
@@ -215,6 +228,28 @@ void generate(astnode_t *root, FILE *outFile){
       fprintf(outFile, " setne %%al\n");
       fprintf(outFile, "%s:\n", endLabel);
     }
+    //Bitwise ops
+    else if(strncmp(opType, "&", 5) == 0){
+      generate(currNode->fields.children.left, outFile);
+      fprintf(outFile, " push %%eax\n");
+      generate(currNode->fields.children.right, outFile);
+      fprintf(outFile, " pop %%ecx\n");
+      fprintf(outFile, " and %%ecx, %%eax\n");
+    }
+    else if(strncmp(opType, "^", 5) == 0){
+      generate(currNode->fields.children.left, outFile);
+      fprintf(outFile, " push %%eax\n");
+      generate(currNode->fields.children.right, outFile);
+      fprintf(outFile, " pop %%ecx\n");
+      fprintf(outFile, " xor %%ecx, %%eax\n");
+    }
+    else if(strncmp(opType, "|", 5) == 0){
+        generate(currNode->fields.children.left, outFile);
+        fprintf(outFile, " push %%eax\n");
+        generate(currNode->fields.children.right, outFile);
+        fprintf(outFile, " pop %%ecx\n");
+        fprintf(outFile, " or %%ecx, %%eax\n");
+            }
     return;
   }
   fclose(outFile);

@@ -56,7 +56,7 @@ void initRegexp(){
   flag += regcomp(&mod_op, "%", 0);
   flag += regcomp(&bit_and, "&", 0);
   flag += regcomp(&bit_or, "|", 0);
-  flag += regcomp(&bit_xor, "^", 0);
+  flag += regcomp(&bit_xor, "\\^", 0);
   flag += regcomp(&shift_left, "<<", 0);
   flag += regcomp(&shift_right, ">>", 0);
   if(flag > 0){

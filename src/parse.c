@@ -9,7 +9,7 @@
  *
  * <program> ::= <function>
  * <function> ::= "int" <id> "(" ")" "{" <statement> "}"
- * <statement> ::= "return" <exp> ";"
+ * <statement> ::= "return" <exp> ";" | "int" <id> "=" <exp> ";"
  * <exp> ::= <logical-and-exp> { "||" <logical-and-exp> }
  * <logical-and-exp> ::= <equality-exp> { "&&" <equality-exp> }
  * <equality-exp> ::= <relational-exp> { ("!=" | "==") <relational-exp> }
@@ -175,7 +175,7 @@ astnode_t *parseLogicalAndExp(tokenlist_t *tokens){
   }
   token_t *currToken = NULL;
   astnode_t *exprNode = NULL;
-  exprNode = parseEqualityExp(tokens);
+  exprNode = parseBitOrExpr(tokens);
   currToken = peek(tokens);
   //Found first factor, now check for additional mult/division
   while(currToken->type == AND_OP){
@@ -189,7 +189,7 @@ astnode_t *parseLogicalAndExp(tokenlist_t *tokens){
     }
     operator->nodeType = DATA;
     operator->fields.strVal = opVal;
-    astnode_t *rightOperand = parseEqualityExp(tokens);
+    astnode_t *rightOperand = parseBitOrExpr(tokens);
     exprNode = (astnode_t *) malloc(sizeof(astnode_t)*1);
     if(exprNode == NULL){
       fprintf(stderr, "Failed to allocate space for binary operator term node.\n");
