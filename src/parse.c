@@ -21,7 +21,7 @@
  * <shift-expr> ::= <additive-expr> { ("<<" | ">>") <additive-expr}
  * <additive-exp> ::= <term> { ("+" | "-") <term> }
  * <term> ::= <factor> { ("*" | "/" | "%") <factor> }
- * <factor> ::= "(" <exp> ")" | <unary_op> <factor> | <int>
+ * <factor> ::= "(" <exp> ")" | <unary_op> <factor> | <int> | <id>
  * <unary_op> ::= "!" | "~" | "-"
  **/
 /**
